@@ -22,14 +22,13 @@ public class NoteService {
 
     @Transactional
     public Note createNote(Note note) {
-        // Ensure default userType is set
         if (note.getUserType() == null || note.getUserType().isBlank()) {
             note.setUserType("USER");
         }
 
         Note saved = noteRepo.save(note);
-        entityManager.flush();         // Force DB insert
-        entityManager.refresh(saved);  // Reload the entity with DB-generated timestamps
+        entityManager.flush();
+        entityManager.refresh(saved);
         return saved;
     }
 
@@ -45,11 +44,15 @@ public class NoteService {
         noteRepo.deleteById(noteId);
     }
 
+    public Optional<Note> getNoteByFilenameAndUserId(String filename, Long userId) {
+        return noteRepo.findByFilenameAndUserId(filename, userId);
+    }
+
     @Transactional
     public Note updateNote(Note updatedNote) {
         Note saved = noteRepo.save(updatedNote);
-        entityManager.flush();         // Force DB update
-        entityManager.refresh(saved);  // Reload updated_at from DB
+        entityManager.flush();
+        entityManager.refresh(saved);
         return saved;
     }
 }
