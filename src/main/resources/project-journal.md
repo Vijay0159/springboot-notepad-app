@@ -14,11 +14,16 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 - **Swagger Integration**: Live API documentation using Swagger UI with proper `multipart/form-data` support was achieved by configuring `@RequestPart` annotations.
 - **Filename Validation**: Rules implemented to avoid injection, path traversal (`/`, `\`), and multi-dot (`..`) issues.
 - **JSP-based UI Bootstrapped**: A minimal JSP-based frontend is in place and ready for expansion (login, dashboard, upload forms, etc.).
+- **Swagger Integration with Descriptive Annotations**  
+  All endpoints are documented using `@Operation` (with `summary` and `description`) and `@ApiResponses`. File upload endpoints use `@RequestPart`, ensuring Swagger renders proper file selection UI.
+
 
 ---
 
 ## ❌ What Went Wrong / Impediments
 
+- **Swagger Upload UI Glitch**  
+  Swagger initially failed to show a file chooser due to incorrect use of `@RequestParam` for file uploads.
 - **Swagger File Upload Glitch**: Swagger initially failed to render file upload UI due to incorrect `@RequestParam` usage.
 - **File Naming Confusion**: Filenames were appended with `.txt` incorrectly or inconsistently; resolved with smart extension logic.
 - **UI Development Delays**: Minimal UI was built due to prioritization of core backend functionality.
@@ -30,7 +35,11 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 - **Multipart Support in Swagger**: Resolved by replacing `@RequestParam` with `@RequestPart`, setting `consumes = multipart/form-data`.
 - **Filename & Content Validation**: Custom logic added to validate filenames and ensure content is safe and not empty.
 - **UTF-8 Encoding**: Ensured all uploaded files are read and stored with UTF-8 encoding to avoid character corruption.
-
+- **Swagger Annotations for Better UX**  
+  Enhanced Swagger documentation with:
+  - `@Operation(summary = "...", description = "...")`
+  - `@ApiResponses(...)` to list all expected HTTP responses.
+  - Improved readability and developer experience via Swagger UI.
 ---
 
 ## 🌱 Future Enhancements / Upgrade Ideas
