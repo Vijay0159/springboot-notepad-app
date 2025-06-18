@@ -21,9 +21,6 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 ---
 
 ## ❌ What Went Wrong / Impediments
-
-- **Swagger Upload UI Glitch**  
-  Swagger initially failed to show a file chooser due to incorrect use of `@RequestParam` for file uploads.
 - **Swagger File Upload Glitch**: Swagger initially failed to render file upload UI due to incorrect `@RequestParam` usage.
 - **File Naming Confusion**: Filenames were appended with `.txt` incorrectly or inconsistently; resolved with smart extension logic.
 - **UI Development Delays**: Minimal UI was built due to prioritization of core backend functionality.
