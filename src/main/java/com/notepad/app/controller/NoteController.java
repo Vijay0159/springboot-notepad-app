@@ -2,6 +2,9 @@ package com.notepad.app.controller;
 
 import com.notepad.app.entity.Note;
 import com.notepad.app.service.NoteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,13 +24,18 @@ public class NoteController {
     static class NoteRequestDTO {
         public String filename;
         public String content;
-        public String userType; // optional
+        public String userType;
     }
 
     private boolean isNotLoggedIn(HttpSession session) {
         return session.getAttribute("userId") == null;
     }
 
+    @Operation(summary = "Create a note", description = "Creates a new note associated with the current logged-in user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note created successfully"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @PostMapping("/create")
     public ResponseEntity<?> createNote(HttpSession session, @RequestBody NoteRequestDTO req) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before creating a note");
@@ -42,6 +50,11 @@ public class NoteController {
         return ResponseEntity.ok(noteService.createNote(note));
     }
 
+    @Operation(summary = "Get all notes", description = "Retrieves all notes created by the logged-in user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Notes retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @GetMapping("/all")
     public ResponseEntity<?> getNotes(HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing notes");
@@ -50,6 +63,12 @@ public class NoteController {
         return ResponseEntity.ok(noteService.getAllNotesByUser(userId));
     }
 
+    @Operation(summary = "Get note by ID", description = "Fetches a specific note by its ID, only if it belongs to the logged-in user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Note not found or unauthorized"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @GetMapping("/get/by-id/{noteId}")
     public ResponseEntity<?> getNote(@PathVariable Long noteId, HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing note");
@@ -62,6 +81,12 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
 
+    @Operation(summary = "Update note by ID", description = "Updates a note identified by ID for the current user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note updated successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized or login required"),
+            @ApiResponse(responseCode = "404", description = "Note not found")
+    })
     @PutMapping("/update/by-id/{noteId}")
     public ResponseEntity<?> updateNote(@PathVariable Long noteId, @RequestBody NoteRequestDTO req, HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before updating note");
@@ -80,6 +105,12 @@ public class NoteController {
         return ResponseEntity.ok(noteService.updateNote(note));
     }
 
+    @Operation(summary = "Delete note by ID", description = "Deletes a note identified by ID, if it belongs to the current user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Note not found or unauthorized"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @DeleteMapping("/delete/by-id/{noteId}")
     public ResponseEntity<?> deleteNote(@PathVariable Long noteId, HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before deleting note");
@@ -93,20 +124,39 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
 
-    // ---------------- NEW: by filename ----------------
-
+    @Operation(
+            summary = "Get note by filename",
+            description = "Fetch a specific note by filename for the currently logged-in user"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note fetched successfully"),
+            @ApiResponse(responseCode = "401", description = "User not logged in"),
+            @ApiResponse(responseCode = "404", description = "Note not found or unauthorized")
+    })
     @GetMapping("/get/by-filename/{filename}")
     public ResponseEntity<?> getNoteByFilename(@PathVariable String filename, HttpSession session) {
-        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing note");
+        if (session.getAttribute("userId") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing note");
+        }
 
         Long userId = (Long) session.getAttribute("userId");
         Optional<Note> noteOpt = noteService.getNoteByFilenameAndUserId(filename, userId);
+
         if (noteOpt.isPresent()) {
             return ResponseEntity.ok(noteOpt.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
 
+
+
+    @Operation(summary = "Update note by filename", description = "Updates an existing note using its filename.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Note not found"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @PutMapping("/update/by-filename/{filename}")
     public ResponseEntity<?> updateNoteByFilename(@PathVariable String filename, @RequestBody NoteRequestDTO req, HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before updating note");
@@ -125,6 +175,12 @@ public class NoteController {
         return ResponseEntity.ok(noteService.updateNote(note));
     }
 
+    @Operation(summary = "Delete note by filename", description = "Deletes a note by filename if it belongs to the current user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Note not found"),
+            @ApiResponse(responseCode = "401", description = "Login required")
+    })
     @DeleteMapping("/delete/by-filename/{filename}")
     public ResponseEntity<?> deleteNoteByFilename(@PathVariable String filename, HttpSession session) {
         if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before deleting note");
@@ -138,6 +194,13 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
 
+    @Operation(summary = "Upload note from file", description = "Uploads a `.txt` file and saves it as a note for the user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Note uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file or filename"),
+            @ApiResponse(responseCode = "401", description = "Login required"),
+            @ApiResponse(responseCode = "500", description = "Server error while processing the file")
+    })
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<?> uploadNoteFile(
             HttpSession session,
@@ -155,13 +218,10 @@ public class NoteController {
 
         try {
             Long userId = (Long) session.getAttribute("userId");
-
-            // Determine filename
             String finalFilename = (filename != null && !filename.trim().isEmpty())
                     ? filename.trim()
                     : file.getOriginalFilename();
 
-            // Basic validation
             if (finalFilename.contains("/") || finalFilename.contains("\\") || finalFilename.startsWith(".")) {
                 return ResponseEntity.badRequest().body("Filename cannot contain slashes or start with a dot.");
             }
@@ -187,7 +247,4 @@ public class NoteController {
                     .body("Failed to upload note: " + e.getMessage());
         }
     }
-
-
-
 }
