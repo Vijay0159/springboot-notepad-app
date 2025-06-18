@@ -1,103 +1,140 @@
 # Project: Notepad Application (Spring Boot + MySQL + JSP)
 
+A lightweight, full-stack Notepad web application designed to allow authenticated users to upload, store, view, and manage plain text notes. The project follows a modular MVC architecture using Spring Boot, JSP, and MySQL.
+
 ---
 
 ## ✅ What Went Well
 
-- **Modular Design**: The application is built with clear separation of controller, service, entity, and repository layers.
-- **User Session Handling**: Authentication and session management were successfully implemented.
-- **Basic CRUD Operations**: Create, Read, Update, Delete endpoints for notes are functional and secured.
-- **Filename-based Operations**: Additional endpoints added for CRUD operations by filename.
-- **File Upload Feature**: `.txt` file uploads are supported, parsed, validated, and stored as notes.
-- **Swagger Integration**: API documentation enabled, with multipart/form-data support adjustments.
-- **Basic Validation**: Filenames are validated to ensure clean input (e.g., extensions, no illegal characters).
+- **Modular Design**: Clean separation between `controller`, `service`, `repository`, and `entity` layers allowed for easy development and maintenance.
+- **Session-Based Authentication**: Users are authenticated via HTTP session attributes (`userId`, `username`), providing simple and secure stateful login handling.
+- **CRUD Operations**: Users can create, read, update, and delete notes securely, both by ID and by filename.
+- **Filename-based Access**: Operations using custom filenames are supported, improving UX for retrieval and management.
+- **File Upload Capability**: `.txt` file upload with validations for extension, naming conventions, and content parsing is fully functional.
+- **Swagger Integration**: Live API documentation using Swagger UI with proper `multipart/form-data` support was achieved by configuring `@RequestPart` annotations.
+- **Filename Validation**: Rules implemented to avoid injection, path traversal (`/`, `\`), and multi-dot (`..`) issues.
+- **JSP-based UI Bootstrapped**: A minimal JSP-based frontend is in place and ready for expansion (login, dashboard, upload forms, etc.).
 
 ---
 
 ## ❌ What Went Wrong / Impediments
 
-- Swagger UI didn't initially support file uploads correctly until `@RequestPart` and `content-type` adjustments were made.
-- Improper `.txt` extension appending was fixed by validating and modifying the filename.
-- Swagger was initially asking for body input instead of file upload UI — clarified and resolved.
+- **Swagger File Upload Glitch**: Swagger initially failed to render file upload UI due to incorrect `@RequestParam` usage.
+- **File Naming Confusion**: Filenames were appended with `.txt` incorrectly or inconsistently; resolved with smart extension logic.
+- **UI Development Delays**: Minimal UI was built due to prioritization of core backend functionality.
 
 ---
 
 ## 🧱 Impediments We Overcame
 
-- **Swagger multipart/form-data**: Solved by shifting from `@RequestParam` to `@RequestPart` and adjusting method signature.
-- **File Validation**: Introduced filename rules to prevent injection or upload issues.
-- **Text Encoding**: Ensured UTF-8 reading of file content without corruption.
+- **Multipart Support in Swagger**: Resolved by replacing `@RequestParam` with `@RequestPart`, setting `consumes = multipart/form-data`.
+- **Filename & Content Validation**: Custom logic added to validate filenames and ensure content is safe and not empty.
+- **UTF-8 Encoding**: Ensured all uploaded files are read and stored with UTF-8 encoding to avoid character corruption.
 
 ---
 
 ## 🌱 Future Enhancements / Upgrade Ideas
 
+### 🔧 Core Backend Upgrades
 - **Versioning System**  
-  Track previous versions of a note, not just created/updated timestamps.  
-  Use a `note_versions` table to keep older content snapshots.
+  Track previous versions of a note using a new `note_versions` table with version numbers and timestamps.
 
 - **Trash / Soft Delete**  
-  Move deleted notes to a `note_trashed` table instead of permanent deletion.  
-  Allow restore operation.
+  Instead of hard delete, notes will be moved to `note_trashed`, allowing restore or permanent purge.
 
 - **Tagging & Categories**  
-  Add a `tags` column or a separate `note_tags` mapping table.  
-  Improve search and categorization UX.
+  Enable tagging system with a `note_tags` table or a `tags` column; allow filtering/search by tags.
 
-- **Full-text Search**  
-  Enable search within note content (e.g., using MySQL `FULLTEXT` or basic `LIKE` search).
+- **Full-text Content Search**  
+  Support `LIKE`-based or `FULLTEXT`-based MySQL search within the note content field.
 
 - **Note Metadata**  
-  Store word count and character count in the DB.  
-  Auto-generate these at creation/update time.
+  Store `wordCount` and `characterCount` columns; computed and updated at note creation/edit time.
 
-- **Authorization Enhancements**  
-  Implement role-based access (Admin, User, Moderator).  
-  Restrict sensitive endpoints accordingly.
+- **Audit Logs**  
+  Track all major actions in `activity_log` with `userId`, `actionType`, `noteId`, `timestamp`.
 
-- **Activity Logs / Audit Trail**  
-  Track actions like create/update/delete per session or user.  
-  Create an `activity_log` table with timestamps.
+### 🔐 Security and Access Control
+- **Role-based Authorization**  
+  Admin/Moderator/User roles using Spring Security. Restrict sensitive endpoints accordingly.
 
-- **Import / Export Support**  
-  Allow bulk upload or export of notes as ZIPs or CSVs.  
-  Combine with versioning and trash to retain history.
+### 📥 Import / Export Support
+- **Export Notes**  
+  Allow user to download individual or grouped notes as `.txt`, `.zip`, or `.csv`.
 
-- **Virtual Folders / Organization**  
-  Group notes in user-defined folders or collections.  
-  Useful for download/export as well.
+- **Import Notes**  
+  Bulk upload `.zip` of `.txt` files into their account.
 
-- **Reminders / Timed Notes**  
-  Notes can be scheduled with reminder time.  
-  Optional notifications later during UI/dashboard phase.
+### 📁 Folder Structure Support
+- **Virtual Folders**  
+  Allow users to group notes into logical folders; stored as metadata or folder-name prefix.
+
+### ⏰ Reminders and Notifications
+- **Timed Notes**  
+  Notes with a future date-time alert to remind the user (to be surfaced via UI).
+
+---
+
+## 💻 UI Development Plan (JSP / HTML)
+
+- **User Authentication Pages**: Login, Signup (Form-based JSPs).
+- **Dashboard**: List notes with edit/delete/upload options.
+- **Note Viewer/Editor**: Rich text display and edit capability for `.txt` files.
+- **Search Bar**: Filter by title, tag, or folder.
+- **Upload Form**: Multipart form with filename, file, and optional tags.
+- **Trash View**: View and restore soft-deleted notes.
+- **Export Panel**: Bulk-select notes to download as ZIP or CSV.
+- **Reminder Panel**: Set and view reminders for notes.
+
+> Frontend will be gradually built using JSP and styled using Bootstrap or Tailwind (if migrated to HTML/React later).
 
 ---
 
 ## 📦 Project File Convention
 
-- `application-local.properties` → Local configuration.
-- `project-journal.md` → Developer documentation, retrospective notes, plans.
-- `.md` is chosen for Markdown format, easier formatting, compatible with GitHub / GitLab.
+| File                         | Purpose                                                     |
+|-----------------------------|-------------------------------------------------------------|
+| `application-local.properties` | Local DB and server config used for dev profile             |
+| `project-journal.md`        | This file: Documentation, changelog, retrospective & plans  |
+| `NoteController.java`       | REST endpoints for note operations                          |
+| `NoteService.java`          | Business logic and note validations                         |
+| `NoteRepository.java`       | Spring JPA-based persistence logic                          |
+| `Note.java`                 | JPA entity for notes                                        |
+| `UserController.java`       | Handles login and dashboard redirection                     |
+| `User.java`                 | User entity with ID, name, session-related attributes       |
+| `notes.sql`                 | DB initialization / schema setup file                       |
 
 ---
 
-## 🔍 Observations
+## 🔍 Observations & Good Practices
 
-- Markdown is preferred over `.txt` for structured, styled documentation.
-- This documentation habit is beneficial for tracking thought process, reasoning, and planning.
-- Should be maintained consistently with every feature or milestone.
+- **Session-based auth** is simple but will be replaced with JWT/Spring Security for role management later.
+- Markdown `.md` is ideal for internal project documentation and helps with long-term maintainability.
+- Project is built in **Spring Boot 3+**, uses **Jakarta** imports, compatible with Java 17+.
+- Logging and Exception Handling should be standardized using `@ControllerAdvice` and custom exception classes.
+- We follow **layered architecture** consistently.
+- All features are **testable via Postman or Swagger UI**.
+- Code is clean, readable, and **uses RESTful principles** correctly.
 
 ---
 
-## 📅 Timeline Summary (so far)
+## 📅 Timeline Summary
 
-- ✅ User Auth via Session: Done
-- ✅ CRUD by ID & Filename: Done
-- ✅ File Upload: Done
-- 🟡 Download Feature: On Hold
-- 🟢 Journal & Docs: In Progress
-- 🔜 Versioning, Trash, Tags: Pending
+| Feature                             | Status       |
+|-------------------------------------|--------------|
+| Session-based User Auth             | ✅ Completed |
+| CRUD by ID & Filename               | ✅ Completed |
+| File Upload & Filename Validation   | ✅ Completed |
+| Swagger Integration (with Multipart) | ✅ Completed |
+| Basic JSP UI Bootstrapped           | 🟡 In Progress |
+| Download / Export Notes             | 🔜 Planned |
+| Versioning + Trash                  | 🔜 Planned |
+| Tagging / Full-text Search          | 🔜 Planned |
+| Audit Logging                       | 🔜 Planned |
+| Role-based Authorization            | 🔜 Planned |
+| UI Enhancements (Dashboard, Editor) | 🔜 Planned |
 
 ---
 
 > _“This file is a living journal — an honest mirror of how this Notepad evolved, matured, and what's coming next.”_
+
