@@ -69,6 +69,7 @@ public class AuthController {
         return ResponseEntity.ok("Successfully logged out");
     }
 
+    // sample comment
     @Operation(summary = "Delete user account", description = "Deletes the current user's account and ends the session.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Account deleted and logged out"),
