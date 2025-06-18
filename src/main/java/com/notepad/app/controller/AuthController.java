@@ -25,49 +25,43 @@ public class AuthController {
         public String password;
     }
 
-    @Operation(summary = "Register a new user", description = "Creates a new user with the given username and password.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input")
-    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(userService.createUser(request.username, request.password));
     }
 
-    @Operation(summary = "Log in user", description = "Authenticates the user and starts a session.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login successful"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpSession session) {
+        if (session.getAttribute("userId") != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Already logged in. Logout first to login again.");
+        }
+
         Optional<UserData> user = userService.login(request.username, request.password);
         if (user.isPresent()) {
             session.setAttribute("userId", user.get().getId());
-            return ResponseEntity.ok("Login successful");
+            session.setAttribute("username", user.get().getUsername());
+            return ResponseEntity.ok("Successfully logged in as " + user.get().getUsername());
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 
-    @Operation(summary = "Log out user", description = "Terminates the current session.")
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
+        if (session.getAttribute("userId") == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You are already logged out.");
+        }
         session.invalidate();
-        return ResponseEntity.ok("Logged out");
+        return ResponseEntity.ok("Successfully logged out");
     }
 
-    @Operation(summary = "Delete account", description = "Deletes the currently logged-in user's account.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Account deleted"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
     @DeleteMapping("/account/delete")
     public ResponseEntity<?> deleteAccount(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before attempting to delete account.");
+        }
         userService.deleteAccount(userId);
         session.invalidate();
-        return ResponseEntity.ok("Account deleted");
+        return ResponseEntity.ok("Account deleted and logged out");
     }
 }

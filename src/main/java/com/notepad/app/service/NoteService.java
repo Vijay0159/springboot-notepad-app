@@ -2,8 +2,11 @@ package com.notepad.app.service;
 
 import com.notepad.app.entity.Note;
 import com.notepad.app.repository.NoteRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,12 +17,20 @@ public class NoteService {
     @Autowired
     private NoteRepository noteRepo;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Transactional
     public Note createNote(Note note) {
         // Ensure default userType is set
         if (note.getUserType() == null || note.getUserType().isBlank()) {
             note.setUserType("USER");
         }
-        return noteRepo.save(note);
+
+        Note saved = noteRepo.save(note);
+        entityManager.flush();         // Force DB insert
+        entityManager.refresh(saved);  // Reload the entity with DB-generated timestamps
+        return saved;
     }
 
     public List<Note> getAllNotesByUser(Long userId) {
@@ -34,7 +45,11 @@ public class NoteService {
         noteRepo.deleteById(noteId);
     }
 
+    @Transactional
     public Note updateNote(Note updatedNote) {
-        return noteRepo.save(updatedNote);
+        Note saved = noteRepo.save(updatedNote);
+        entityManager.flush();         // Force DB update
+        entityManager.refresh(saved);  // Reload updated_at from DB
+        return saved;
     }
 }

@@ -21,23 +21,21 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    // DTO for note input
     static class NoteRequestDTO {
         public String filename;
         public String content;
         public String userType; // optional
     }
 
-    @Operation(summary = "Create a new note", description = "Creates a note for the logged-in user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Note created"),
-            @ApiResponse(responseCode = "401", description = "User not authenticated")
-    })
+    private boolean isNotLoggedIn(HttpSession session) {
+        return session.getAttribute("userId") == null;
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createNote(HttpSession session, @RequestBody NoteRequestDTO req) {
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before creating a note");
 
+        Long userId = (Long) session.getAttribute("userId");
         Note note = new Note();
         note.setUserId(userId);
         note.setFilename(req.filename);
@@ -47,25 +45,18 @@ public class NoteController {
         return ResponseEntity.ok(noteService.createNote(note));
     }
 
-    @Operation(summary = "Get all notes", description = "Retrieves all notes for the logged-in user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Notes retrieved"),
-            @ApiResponse(responseCode = "401", description = "User not authenticated")
-    })
     @GetMapping("/all")
-    public ResponseEntity<List<Note>> getNotes(HttpSession session) {
+    public ResponseEntity<?> getNotes(HttpSession session) {
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing notes");
+
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(noteService.getAllNotesByUser(userId));
     }
 
-    @Operation(summary = "Get note by ID", description = "Retrieves a specific note by ID, only if it belongs to the user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Note found"),
-            @ApiResponse(responseCode = "404", description = "Note not found")
-    })
     @GetMapping("/get/{noteId}")
-    public ResponseEntity<Object> getNote(@PathVariable Long noteId, HttpSession session) {
+    public ResponseEntity<?> getNote(@PathVariable Long noteId, HttpSession session) {
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before viewing note");
+
         Long userId = (Long) session.getAttribute("userId");
         Optional<Note> noteOpt = noteService.getNoteById(noteId);
         if (noteOpt.isPresent() && noteOpt.get().getUserId().equals(userId)) {
@@ -74,16 +65,11 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
 
-    @Operation(summary = "Update a note", description = "Updates an existing note if it belongs to the user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Note updated"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Note not found")
-    })
     @PutMapping("/update/{noteId}")
     public ResponseEntity<?> updateNote(@PathVariable Long noteId, @RequestBody NoteRequestDTO req, HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before updating note");
 
+        Long userId = (Long) session.getAttribute("userId");
         Optional<Note> existing = noteService.getNoteById(noteId);
         if (existing.isEmpty() || !existing.get().getUserId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized or note not found");
@@ -97,14 +83,10 @@ public class NoteController {
         return ResponseEntity.ok(noteService.updateNote(note));
     }
 
-    @Operation(summary = "Delete a note", description = "Deletes a note by ID if it belongs to the logged-in user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Note deleted"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Note not found")
-    })
     @DeleteMapping("/delete/{noteId}")
     public ResponseEntity<?> deleteNote(@PathVariable Long noteId, HttpSession session) {
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before deleting note");
+
         Long userId = (Long) session.getAttribute("userId");
         Optional<Note> note = noteService.getNoteById(noteId);
         if (note.isPresent() && note.get().getUserId().equals(userId)) {
