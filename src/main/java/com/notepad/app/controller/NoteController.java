@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -136,4 +137,57 @@ public class NoteController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Note not found or unauthorized");
     }
+
+    @PostMapping(value = "/upload", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadNoteFile(
+            HttpSession session,
+            @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "filename", required = false) String filename,
+            @RequestPart(value = "userType", required = false) String userType
+    ) {
+        if (session.getAttribute("userId") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before uploading note");
+        }
+
+        if (file.isEmpty() || !file.getOriginalFilename().endsWith(".txt")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or empty file. Only .txt files allowed.");
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+
+            // Determine filename
+            String finalFilename = (filename != null && !filename.trim().isEmpty())
+                    ? filename.trim()
+                    : file.getOriginalFilename();
+
+            // Basic validation
+            if (finalFilename.contains("/") || finalFilename.contains("\\") || finalFilename.startsWith(".")) {
+                return ResponseEntity.badRequest().body("Filename cannot contain slashes or start with a dot.");
+            }
+
+            long dotCount = finalFilename.chars().filter(ch -> ch == '.').count();
+            if (dotCount > 1) {
+                return ResponseEntity.badRequest().body("Filename cannot contain more than one dot.");
+            }
+
+            if (!finalFilename.endsWith(".txt")) {
+                finalFilename += ".txt";
+            }
+
+            Note note = new Note();
+            note.setUserId(userId);
+            note.setFilename(finalFilename);
+            note.setUserType(userType != null ? userType : "USER");
+            note.setContent(new String(file.getBytes()));
+
+            return ResponseEntity.ok(noteService.createNote(note));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload note: " + e.getMessage());
+        }
+    }
+
+
+
 }
