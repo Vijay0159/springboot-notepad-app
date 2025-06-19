@@ -13,17 +13,19 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 - **File Upload Capability**: `.txt` file upload with validations for extension, naming conventions, and content parsing is fully functional.
 - **Swagger Integration**: Live API documentation using Swagger UI with proper `multipart/form-data` support was achieved by configuring `@RequestPart` annotations.
 - **Filename Validation**: Rules implemented to avoid injection, path traversal (`/`, `\`), and multi-dot (`..`) issues.
-- **JSP-based UI Bootstrapped**: A minimal JSP-based frontend is in place and ready for expansion (login, dashboard, upload forms, etc.).
-- **Swagger Integration with Descriptive Annotations**  
-  All endpoints are documented using `@Operation` (with `summary` and `description`) and `@ApiResponses`. File upload endpoints use `@RequestPart`, ensuring Swagger renders proper file selection UI.
-
+- **JSP UI Integrated**: A structured, themed frontend has been integrated with dedicated JSP views for all core operations (login, dashboard, fetch, update, delete, upload, etc.).
+- **Theme Toggle Feature**: JavaScript-based light/dark theme toggle implemented, enhancing visual UX for users.
+- **Navigation via Dashboard**: Hyperlink buttons styled and organized under grouped sections for all note-related operations.
+- **REST + JSP Dual Mode**: REST controllers power Swagger API docs; view controllers serve JSP UI. Both coexist smoothly.
 
 ---
 
 ## ❌ What Went Wrong / Impediments
+
 - **Swagger File Upload Glitch**: Swagger initially failed to render file upload UI due to incorrect `@RequestParam` usage.
 - **File Naming Confusion**: Filenames were appended with `.txt` incorrectly or inconsistently; resolved with smart extension logic.
-- **UI Development Delays**: Minimal UI was built due to prioritization of core backend functionality.
+- **UI Rendering Gaps**: Some view transitions lacked feedback (success/error), and JSP form links mismatched controller paths early on.
+- **JSP Tag Library Error**: JSTL functions (e.g., `fn:length`) failed until proper taglib imports were added.
 
 ---
 
@@ -31,68 +33,54 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 
 - **Multipart Support in Swagger**: Resolved by replacing `@RequestParam` with `@RequestPart`, setting `consumes = multipart/form-data`.
 - **Filename & Content Validation**: Custom logic added to validate filenames and ensure content is safe and not empty.
-- **UTF-8 Encoding**: Ensured all uploaded files are read and stored with UTF-8 encoding to avoid character corruption.
-- **Swagger Annotations for Better UX**  
-  Enhanced Swagger documentation with:
-  - `@Operation(summary = "...", description = "...")`
-  - `@ApiResponses(...)` to list all expected HTTP responses.
-  - Improved readability and developer experience via Swagger UI.
+- **JSP Integration**: Unified REST and UI controllers. Ensured all JSPs correctly mapped and displayed appropriate data.
+- **Themed UI with JS**: Created `theme-toggle.js` and `style.css` for consistent styling and toggling between themes.
+- **Dynamic JSPs for All Ops**: Each operation (e.g., `/note/update/by-id`) has a dedicated view, improving clarity and usability.
+
 ---
 
 ## 🌱 Future Enhancements / Upgrade Ideas
 
 ### 🔧 Core Backend Upgrades
-- **Versioning System**  
-  Track previous versions of a note using a new `note_versions` table with version numbers and timestamps.
-
-- **Trash / Soft Delete**  
-  Instead of hard delete, notes will be moved to `note_trashed`, allowing restore or permanent purge.
-
-- **Tagging & Categories**  
-  Enable tagging system with a `note_tags` table or a `tags` column; allow filtering/search by tags.
-
-- **Full-text Content Search**  
-  Support `LIKE`-based or `FULLTEXT`-based MySQL search within the note content field.
-
-- **Note Metadata**  
-  Store `wordCount` and `characterCount` columns; computed and updated at note creation/edit time.
-
-- **Audit Logs**  
-  Track all major actions in `activity_log` with `userId`, `actionType`, `noteId`, `timestamp`.
+- **Versioning System**
+- **Trash / Soft Delete**
+- **Tagging & Categories**
+- **Full-text Content Search**
+- **Note Metadata**
+- **Audit Logs**
 
 ### 🔐 Security and Access Control
-- **Role-based Authorization**  
-  Admin/Moderator/User roles using Spring Security. Restrict sensitive endpoints accordingly.
+- **Role-based Authorization**
 
 ### 📥 Import / Export Support
-- **Export Notes**  
-  Allow user to download individual or grouped notes as `.txt`, `.zip`, or `.csv`.
-
-- **Import Notes**  
-  Bulk upload `.zip` of `.txt` files into their account.
+- **Export Notes** 🔜 (Next up!)
+- **Import Notes**
 
 ### 📁 Folder Structure Support
-- **Virtual Folders**  
-  Allow users to group notes into logical folders; stored as metadata or folder-name prefix.
+- **Virtual Folders**
 
 ### ⏰ Reminders and Notifications
-- **Timed Notes**  
-  Notes with a future date-time alert to remind the user (to be surfaced via UI).
+- **Timed Notes / Alerts**
 
 ---
 
 ## 💻 UI Development Plan (JSP / HTML)
 
-- **User Authentication Pages**: Login, Signup (Form-based JSPs).
-- **Dashboard**: List notes with edit/delete/upload options.
-- **Note Viewer/Editor**: Rich text display and edit capability for `.txt` files.
-- **Search Bar**: Filter by title, tag, or folder.
-- **Upload Form**: Multipart form with filename, file, and optional tags.
-- **Trash View**: View and restore soft-deleted notes.
-- **Export Panel**: Bulk-select notes to download as ZIP or CSV.
-- **Reminder Panel**: Set and view reminders for notes.
+| Feature                   | Status       |
+|---------------------------|--------------|
+| Login, Register, Logout   | ✅ Completed |
+| Dashboard UI              | ✅ Completed |
+| All CRUD Forms (JSP)      | ✅ Completed |
+| Get All Notes View        | ✅ Completed |
+| Note Details View         | ✅ Completed |
+| Theme Toggle Button       | ✅ Completed |
+| Feedback Messages (JSP)   | 🔜 Planned   |
+| Download Buttons / Views  | 🔜 Planned   |
+| Trash View                | 🔜 Planned   |
+| Folder / Tag Filtering    | 🔜 Planned   |
+| Reminder Panel            | 🔜 Planned   |
 
-> Frontend will be gradually built using JSP and styled using Bootstrap or Tailwind (if migrated to HTML/React later).
+> Frontend is currently powered by JSP + custom CSS. May consider Bootstrap integration or React transition later.
 
 ---
 
@@ -100,27 +88,27 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 
 | File                         | Purpose                                                     |
 |-----------------------------|-------------------------------------------------------------|
-| `application-local.properties` | Local DB and server config used for dev profile             |
+| `application-local.properties` | Local DB and server config for dev use                    |
 | `project-journal.md`        | This file: Documentation, changelog, retrospective & plans  |
-| `NoteController.java`       | REST endpoints for note operations                          |
-| `NoteService.java`          | Business logic and note validations                         |
-| `NoteRepository.java`       | Spring JPA-based persistence logic                          |
-| `Note.java`                 | JPA entity for notes                                        |
-| `UserController.java`       | Handles login and dashboard redirection                     |
-| `User.java`                 | User entity with ID, name, session-related attributes       |
-| `notes.sql`                 | DB initialization / schema setup file                       |
+| `NoteRestController.java`   | REST endpoints for note operations (for Swagger/API)        |
+| `NoteViewController.java`   | UI handlers for JSP-based frontend                          |
+| `NoteService.java`          | Business logic and validations                              |
+| `NoteRepository.java`       | JPA interface to DB                                         |
+| `Note.java`                 | JPA entity                                                  |
+| `UserRestController.java`   | REST endpoints for auth                                     |
+| `AuthViewController.java`   | UI handlers for login/register/delete JSPs                 |
+| `/webapp/jsp/*.jsp`         | JSP pages for each UI function                             |
+| `/webapp/css/style.css`     | Global CSS styles for all views                            |
+| `/webapp/js/theme-toggle.js`| JS for theme switcher                                       |
 
 ---
 
 ## 🔍 Observations & Good Practices
 
-- **Session-based auth** is simple but will be replaced with JWT/Spring Security for role management later.
-- Markdown `.md` is ideal for internal project documentation and helps with long-term maintainability.
-- Project is built in **Spring Boot 3+**, uses **Jakarta** imports, compatible with Java 17+.
-- Logging and Exception Handling should be standardized using `@ControllerAdvice` and custom exception classes.
-- We follow **layered architecture** consistently.
-- All features are **testable via Postman or Swagger UI**.
-- Code is clean, readable, and **uses RESTful principles** correctly.
+- **JSP + REST hybrid** setup is now functioning smoothly.
+- Clean file and folder organization helps locate logic/UI easily.
+- All note operations are duplicated in both REST and UI flows, easing testing and future migration.
+- Next UI improvement will include **Download / Export** functionality and improving **form feedback UX**.
 
 ---
 
@@ -131,16 +119,15 @@ A lightweight, full-stack Notepad web application designed to allow authenticate
 | Session-based User Auth             | ✅ Completed |
 | CRUD by ID & Filename               | ✅ Completed |
 | File Upload & Filename Validation   | ✅ Completed |
-| Swagger Integration (with Multipart) | ✅ Completed |
-| Basic JSP UI Bootstrapped           | 🟡 In Progress |
-| Download / Export Notes             | 🔜 Planned |
-| Versioning + Trash                  | 🔜 Planned |
-| Tagging / Full-text Search          | 🔜 Planned |
-| Audit Logging                       | 🔜 Planned |
-| Role-based Authorization            | 🔜 Planned |
-| UI Enhancements (Dashboard, Editor) | 🔜 Planned |
+| Swagger Integration (with Multipart)| ✅ Completed |
+| JSP Frontend for All Operations     | ✅ Completed |
+| Theme Toggle for UI                 | ✅ Completed |
+| Download / Export Notes             | 🔜 Planned   |
+| Versioning + Trash                  | 🔜 Planned   |
+| Tagging / Full-text Search          | 🔜 Planned   |
+| Audit Logging                       | 🔜 Planned   |
+| Role-based Authorization            | 🔜 Planned   |
 
 ---
 
 > _“This file is a living journal — an honest mirror of how this Notepad evolved, matured, and what's coming next.”_
-
