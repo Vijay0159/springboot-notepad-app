@@ -1,0 +1,103 @@
+
+:root {
+    --bg-color: #f7f7f7;
+    --text-color: #333;
+    --form-bg: white;
+    --button-bg: #28a745;
+    --button-hover: #218838;
+    --link-color: #007bff;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --form-bg: #1e1e1e;
+    --button-bg: #444;
+    --button-hover: #666;
+    --link-color: #4dabf7;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 40px;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+h2 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+form {
+    display: inline-block;
+    background: var(--form-bg);
+    padding: 25px 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input[type="text"], input[type="password"], input[type="number"], textarea {
+    padding: 10px;
+    width: 220px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+input[type="submit"], button {
+    background-color: var(--button-bg);
+    border: none;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+input[type="submit"]:hover, button:hover {
+    background-color: var(--button-hover);
+}
+
+a {
+    text-decoration: none;
+    color: var(--link-color);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+/* Scoped styles for dashboard.jsp only */
+#dashboard ul {
+    list-style-type: none;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+#dashboard ul li a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+#dashboard ul li a:hover {
+    background-color: #0056b3;
+}

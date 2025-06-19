@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/notes")
-public class NoteController {
+public class NoteRestController {
 
     @Autowired
     private NoteService noteService;
