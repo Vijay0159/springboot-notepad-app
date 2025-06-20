@@ -38,9 +38,14 @@ public class NoteRestController {
     })
     @PostMapping("/create")
     public ResponseEntity<?> createNote(HttpSession session, @RequestBody NoteRequestDTO req) {
-        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before creating a note");
+        if (isNotLoggedIn(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
 
         Long userId = (Long) session.getAttribute("userId");
+
+        if (noteService.getNoteByFilenameAndUserId(req.filename, userId).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Filename already exists for this user.");
+        }
+
         Note note = new Note();
         note.setUserId(userId);
         note.setFilename(req.filename);
@@ -49,6 +54,7 @@ public class NoteRestController {
 
         return ResponseEntity.ok(noteService.createNote(note));
     }
+
 
     @Operation(summary = "Get all notes", description = "Retrieves all notes created by the logged-in user.")
     @ApiResponses({
@@ -97,6 +103,11 @@ public class NoteRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized or note not found");
         }
 
+        // 🚫 Check for duplicate filename
+        if (noteService.isDuplicateFilenameForUserExceptId(req.filename, userId, noteId)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A note with that filename already exists.");
+        }
+
         Note note = existing.get();
         note.setFilename(req.filename);
         note.setContent(req.content);
@@ -104,6 +115,7 @@ public class NoteRestController {
 
         return ResponseEntity.ok(noteService.updateNote(note));
     }
+
 
     @Operation(summary = "Delete note by ID", description = "Deletes a note identified by ID, if it belongs to the current user.")
     @ApiResponses({
@@ -209,30 +221,21 @@ public class NoteRestController {
             @RequestPart(value = "userType", required = false) String userType
     ) {
         if (session.getAttribute("userId") == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login before uploading note");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
         }
 
         if (file.isEmpty() || !file.getOriginalFilename().endsWith(".txt")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or empty file. Only .txt files allowed.");
+            return ResponseEntity.badRequest().body("Only .txt files allowed.");
         }
 
         try {
             Long userId = (Long) session.getAttribute("userId");
-            String finalFilename = (filename != null && !filename.trim().isEmpty())
-                    ? filename.trim()
-                    : file.getOriginalFilename();
+            String finalFilename = (filename != null && !filename.isBlank()) ? filename.trim() : file.getOriginalFilename();
 
-            if (finalFilename.contains("/") || finalFilename.contains("\\") || finalFilename.startsWith(".")) {
-                return ResponseEntity.badRequest().body("Filename cannot contain slashes or start with a dot.");
-            }
+            if (!finalFilename.endsWith(".txt")) finalFilename += ".txt";
 
-            long dotCount = finalFilename.chars().filter(ch -> ch == '.').count();
-            if (dotCount > 1) {
-                return ResponseEntity.badRequest().body("Filename cannot contain more than one dot.");
-            }
-
-            if (!finalFilename.endsWith(".txt")) {
-                finalFilename += ".txt";
+            if (noteService.getNoteByFilenameAndUserId(finalFilename, userId).isPresent()) {
+                return ResponseEntity.badRequest().body("Filename already exists for this user.");
             }
 
             Note note = new Note();
@@ -243,8 +246,8 @@ public class NoteRestController {
 
             return ResponseEntity.ok(noteService.createNote(note));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to upload note: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error uploading file: " + e.getMessage());
         }
     }
+
 }

@@ -1,133 +1,188 @@
 # Project: Notepad Application (Spring Boot + MySQL + JSP)
 
-A lightweight, full-stack Notepad web application designed to allow authenticated users to upload, store, view, and manage plain text notes. The project follows a modular MVC architecture using Spring Boot, JSP, and MySQL.
+A lightweight, full-stack Notepad web application designed to allow authenticated users to upload, view, update, delete, and download plain text notes. The system follows an MVC pattern using Spring Boot, Hibernate (JPA), JSP, and MySQL.
 
 ---
 
 ## ✅ What Went Well
 
-- **Modular Design**: Clean separation between `controller`, `service`, `repository`, and `entity` layers allowed for easy development and maintenance.
-- **Session-Based Authentication**: Users are authenticated via HTTP session attributes (`userId`, `username`), providing simple and secure stateful login handling.
-- **CRUD Operations**: Users can create, read, update, and delete notes securely, both by ID and by filename.
-- **Filename-based Access**: Operations using custom filenames are supported, improving UX for retrieval and management.
-- **File Upload Capability**: `.txt` file upload with validations for extension, naming conventions, and content parsing is fully functional.
-- **Swagger Integration**: Live API documentation using Swagger UI with proper `multipart/form-data` support was achieved by configuring `@RequestPart` annotations.
-- **Filename Validation**: Rules implemented to avoid injection, path traversal (`/`, `\`), and multi-dot (`..`) issues.
-- **JSP UI Integrated**: A structured, themed frontend has been integrated with dedicated JSP views for all core operations (login, dashboard, fetch, update, delete, upload, etc.).
-- **Theme Toggle Feature**: JavaScript-based light/dark theme toggle implemented, enhancing visual UX for users.
-- **Navigation via Dashboard**: Hyperlink buttons styled and organized under grouped sections for all note-related operations.
-- **REST + JSP Dual Mode**: REST controllers power Swagger API docs; view controllers serve JSP UI. Both coexist smoothly.
+- **Modular Design**  
+  Clear separation between controller, service, repository, and entity layers ensured clean code and easy maintenance.
+
+- **Session-Based Authentication**  
+  Logged-in users are tracked using session attributes (`userId`, `username`), offering simple and secure access control.
+
+- **CRUD Operations by ID & Filename**  
+  Users can manage notes via both internal ID and custom filenames.
+
+- **Robust File Upload Handling**  
+  `.txt` file uploads support both auto and manual naming, with validation for extensions, special characters, and double dots.
+
+- **Filename Normalization**  
+  Intelligent `.txt` extension handling added across all features to avoid duplicates and maintain consistency.
+
+- **Modal-based Feedback System**  
+  Success messages now appear in professional modals for create, update, delete, and upload flows — only after DB success.
+
+- **Download Feature (Single & Bulk)**
+    - Users can download individual notes by ID or filename (as `.txt`)
+    - Users can bulk-download all notes as a `.zip` file directly from the All Notes view
+
+- **JSP UI Enhancements**  
+  All user operations (CRUD + fetch + upload) are supported via themed, modular JSPs.
+
+- **Theme Toggle**  
+  Light/dark theme support via JavaScript and CSS variables, synced across modals and UI.
+
+- **All Notes: Sorting + Show More/Less**  
+  Notes are sortable by ID or filename, and long content can be expanded/collapsed per entry.
+
+- **Combined REST + JSP Setup**  
+  REST APIs (for Swagger + testing) and JSP controllers work in harmony with shared business logic.
 
 ---
 
 ## ❌ What Went Wrong / Impediments
 
-- **Swagger File Upload Glitch**: Swagger initially failed to render file upload UI due to incorrect `@RequestParam` usage.
-- **File Naming Confusion**: Filenames were appended with `.txt` incorrectly or inconsistently; resolved with smart extension logic.
-- **UI Rendering Gaps**: Some view transitions lacked feedback (success/error), and JSP form links mismatched controller paths early on.
-- **JSP Tag Library Error**: JSTL functions (e.g., `fn:length`) failed until proper taglib imports were added.
+- **Filename Discrepancies**  
+  Some flows appended `.txt`, while others didn’t — causing silent duplicates. Fixed with centralized logic.
+
+- **Lack of Feedback on JSP Pages**  
+  Many early pages showed no confirmation/error, confusing users about the result of their actions.
+
+- **Modal Visibility Bugs**  
+  Modals for deletion didn’t render due to controller returning the wrong view (`dashboard` instead of original form). Fixed.
+
+- **JSTL Tag Errors**  
+  Functions like `fn:length()` didn’t work until the correct `taglib` was imported explicitly.
+
+- **Download Button Not Visible**  
+  Fetch JSPs returned different views (like `noteDetails`) instead of staying on the same page, hiding buttons. This was refactored.
 
 ---
 
 ## 🧱 Impediments We Overcame
 
-- **Multipart Support in Swagger**: Resolved by replacing `@RequestParam` with `@RequestPart`, setting `consumes = multipart/form-data`.
-- **Filename & Content Validation**: Custom logic added to validate filenames and ensure content is safe and not empty.
-- **JSP Integration**: Unified REST and UI controllers. Ensured all JSPs correctly mapped and displayed appropriate data.
-- **Themed UI with JS**: Created `theme-toggle.js` and `style.css` for consistent styling and toggling between themes.
-- **Dynamic JSPs for All Ops**: Each operation (e.g., `/note/update/by-id`) has a dedicated view, improving clarity and usability.
+- **Consistent File Extension Handling**  
+  Added a utility-like `normalizeTxtExtension()` in the controller to ensure that `.txt` is only appended if missing.
+
+- **Unified Feedback Pattern**  
+  Switched all forms to use model attributes like `modalSuccess`, `updatedFile`, `deletedFile`, etc., triggering consistent UI messages.
+
+- **Theme-Compatible Modals**  
+  Extended CSS to ensure modals respect dark/light themes and don't override layout or blur backgrounds.
+
+- **Bulk Download via ZIP**  
+  Instead of creating new endpoints, we enhanced the existing `/note/fetch/all` with a POST form to trigger `.zip` generation using `ZipOutputStream`.
+
+- **Scoped CSS Fixes for Tables**  
+  Adapted styles for both light and dark themes with smooth toggling and proper typography across notes list.
+
+- **Duplicate Filename Check During Update**  
+  Added a `noteService.isDuplicateFilenameForUserExceptId(...)` check to prevent collisions during filename updates.
 
 ---
 
 ## 🌱 Future Enhancements / Upgrade Ideas
 
-### 🔧 Core Backend Upgrades
-- **Versioning System**
-- **Trash / Soft Delete**
-- **Tagging & Categories**
-- **Full-text Content Search**
-- **Note Metadata**
-- **Audit Logs**
+### 🔧 Backend Enhancements
+- **Note Versioning**  
+  Add version history tracking for updates to allow rollback or review.
 
-### 🔐 Security and Access Control
-- **Role-based Authorization**
+- **Trash Bin / Soft Delete**  
+  Move deleted notes to a soft-deleted state for restore or permanent deletion.
 
-### 📥 Import / Export Support
-- **Export Notes** 🔜 (Next up!)
-- **Import Notes**
+- **Tagging and Folders**  
+  Virtual folder or tagging support for organizing notes.
 
-### 📁 Folder Structure Support
-- **Virtual Folders**
+- **Note Analytics**  
+  Store word/character counts and creation/update timestamps for dashboard insights.
 
-### ⏰ Reminders and Notifications
-- **Timed Notes / Alerts**
+- **Audit Logs**  
+  Record user actions like login, upload, delete, and download with timestamps.
 
----
+### 🔐 Security & Access
+- **Role-Based Access**  
+  Implement `USER`, `MODERATOR`, and `ADMIN` roles via Spring Security.
 
-## 💻 UI Development Plan (JSP / HTML)
+### 📥 Import / Export
+- **Import ZIP of Notes**  
+  Bulk import notes from a user’s `.zip` of `.txt` files.
 
-| Feature                   | Status       |
-|---------------------------|--------------|
-| Login, Register, Logout   | ✅ Completed |
-| Dashboard UI              | ✅ Completed |
-| All CRUD Forms (JSP)      | ✅ Completed |
-| Get All Notes View        | ✅ Completed |
-| Note Details View         | ✅ Completed |
-| Theme Toggle Button       | ✅ Completed |
-| Feedback Messages (JSP)   | 🔜 Planned   |
-| Download Buttons / Views  | 🔜 Planned   |
-| Trash View                | 🔜 Planned   |
-| Folder / Tag Filtering    | 🔜 Planned   |
-| Reminder Panel            | 🔜 Planned   |
+- **Metadata Export**  
+  Allow notes to be exported as CSV or with tags/metadata.
 
-> Frontend is currently powered by JSP + custom CSS. May consider Bootstrap integration or React transition later.
+### 🧠 AI Integration (Post-MVP)
+- **AI Assistant for Note Creation**  
+  Add a GPT-powered helper to assist in note writing from a prompt (e.g., “Write an essay on India’s diversity”) directly in `createNote.jsp` and update pages.  
+  *📌 To be implemented only after all current roadmap items are complete.*
+
+### ⏰ Time-bound Notes & Reminders
+- **Reminders UI + Notification Hooks**
 
 ---
 
-## 📦 Project File Convention
+## 💻 UI Development Tracker
 
-| File                         | Purpose                                                     |
-|-----------------------------|-------------------------------------------------------------|
-| `application-local.properties` | Local DB and server config for dev use                    |
-| `project-journal.md`        | This file: Documentation, changelog, retrospective & plans  |
-| `NoteRestController.java`   | REST endpoints for note operations (for Swagger/API)        |
-| `NoteViewController.java`   | UI handlers for JSP-based frontend                          |
-| `NoteService.java`          | Business logic and validations                              |
-| `NoteRepository.java`       | JPA interface to DB                                         |
-| `Note.java`                 | JPA entity                                                  |
-| `UserRestController.java`   | REST endpoints for auth                                     |
-| `AuthViewController.java`   | UI handlers for login/register/delete JSPs                 |
-| `/webapp/jsp/*.jsp`         | JSP pages for each UI function                             |
-| `/webapp/css/style.css`     | Global CSS styles for all views                            |
-| `/webapp/js/theme-toggle.js`| JS for theme switcher                                       |
-
----
-
-## 🔍 Observations & Good Practices
-
-- **JSP + REST hybrid** setup is now functioning smoothly.
-- Clean file and folder organization helps locate logic/UI easily.
-- All note operations are duplicated in both REST and UI flows, easing testing and future migration.
-- Next UI improvement will include **Download / Export** functionality and improving **form feedback UX**.
+| Feature                         | Status       |
+|----------------------------------|--------------|
+| Login & Session Auth             | ✅ Completed |
+| Dashboard                        | ✅ Completed |
+| Create / Update / Delete Views  | ✅ Completed |
+| Upload Form                      | ✅ Completed |
+| Fetch by ID / Filename           | ✅ Completed |
+| Download Single Note             | ✅ Completed |
+| Download All as ZIP              | ✅ Completed |
+| Sort + Expand in All Notes View  | ✅ Completed |
+| Modal-based Success Messages     | ✅ Completed |
+| Dynamic Theme Support            | ✅ Completed |
+| Tag, Folder, Search UI           | 🔜 Planned   |
+| Trash / Restore Panel            | 🔜 Planned   |
+| AI Note Assistant                | 🔜 Planned   |
 
 ---
 
-## 📅 Timeline Summary
+## 📦 File Structure & Conventions
+
+| File/Directory                      | Purpose                                                |
+|------------------------------------|--------------------------------------------------------|
+| `NoteViewController.java`          | View (JSP) logic                                       |
+| `NoteRestController.java`          | REST API controller for Swagger/Postman testing        |
+| `NoteService.java`                 | Central business logic for notes                       |
+| `NoteRepository.java`              | JPA DAO for notes                                      |
+| `Note.java`                        | Note entity                                            |
+| `webapp/jsp/*.jsp`                 | JSP views (one per operation)                          |
+| `webapp/css/style.css`             | Global themed styles (light/dark mode)                 |
+| `webapp/js/theme-toggle.js`        | Handles theme switching logic                          |
+| `project-journal.md`               | This changelog and planning document                   |
+| `application-local.properties`     | DB & server config                                     |
+
+---
+
+## 🔍 Observations & Best Practices
+
+- Having **REST and JSP modes** coexist helps test backend logic from both UI and tools like Swagger.
+- Naming conventions (e.g., `noteId`, `filename`) are consistent across layers.
+- Controller logic avoids duplication by abstracting validation and error handling properly.
+- JSPs are designed to **stay on the same view** post-action (upload/update/delete) for better UX.
+
+---
+
+## 📅 Timeline Snapshot
 
 | Feature                             | Status       |
 |-------------------------------------|--------------|
-| Session-based User Auth             | ✅ Completed |
-| CRUD by ID & Filename               | ✅ Completed |
-| File Upload & Filename Validation   | ✅ Completed |
-| Swagger Integration (with Multipart)| ✅ Completed |
-| JSP Frontend for All Operations     | ✅ Completed |
-| Theme Toggle for UI                 | ✅ Completed |
-| Download / Export Notes             | 🔜 Planned   |
-| Versioning + Trash                  | 🔜 Planned   |
-| Tagging / Full-text Search          | 🔜 Planned   |
-| Audit Logging                       | 🔜 Planned   |
-| Role-based Authorization            | 🔜 Planned   |
+| CRUD + File Upload                  | ✅ Completed |
+| JSP Frontend Integration            | ✅ Completed |
+| Modal-based Feedback (UX)           | ✅ Completed |
+| Theme Switching (Light/Dark)        | ✅ Completed |
+| Single Note Download                | ✅ Completed |
+| Bulk ZIP Download                   | ✅ Completed |
+| Filename Conflict Handling          | ✅ Completed |
+| Error Feedback on Fetch             | ✅ Completed |
+| Tag, Trash, Folder System           | 🔜 Planned   |
+| AI Writing Assistant                | 🔜 Planned   |
 
 ---
 
-> _“This file is a living journal — an honest mirror of how this Notepad evolved, matured, and what's coming next.”_
+> _“This file is a living journal — a reflection of how the Notepad App is evolving from scratch into a powerful productivity platform.”_

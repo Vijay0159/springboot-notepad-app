@@ -55,4 +55,10 @@ public class NoteService {
         entityManager.refresh(saved);
         return saved;
     }
+
+    public boolean isDuplicateFilenameForUserExceptId(String filename, Long userId, Long excludeNoteId) {
+        Optional<Note> existing = noteRepo.findByFilenameAndUserId(filename, userId);
+        return existing.isPresent() && !existing.get().getId().equals(excludeNoteId);
+    }
+
 }

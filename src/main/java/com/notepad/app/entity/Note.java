@@ -6,7 +6,12 @@ import org.hibernate.annotations.DynamicUpdate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notes")
+@Table(
+        name = "notes",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "filename"})
+        }
+)
 @DynamicUpdate
 public class Note {
 
