@@ -270,6 +270,12 @@ public class NoteViewController {
             return "updateById";
         }
 
+        // ✅ Normalize filename
+        if (!filename.toLowerCase().endsWith(".txt")) {
+            filename = filename + ".txt";
+        }
+
+        // 🚫 Check for duplicate filename (excluding current note)
         if (noteService.isDuplicateFilenameForUserExceptId(filename, userId, noteId)) {
             model.addAttribute("error", "A note with that filename already exists.");
             return "updateById";
@@ -284,6 +290,7 @@ public class NoteViewController {
         model.addAttribute("updatedFile", filename);
         return "updateById";
     }
+
 
 
 
