@@ -6,70 +6,81 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <button onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px;">🌗 Toggle Theme</button>
-    <script src="/js/theme.js"></script>
+<div class="theme-switcher">
+    <select id="themeDropdown" onchange="changeTheme(this.value)">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌑 Dark</option>
+        <option value="rose">🌸 Rose</option>
+        <option value="lavender">💜 Lavender</option>
+        <option value="aqua">🌊 Aqua</option>
+    </select>
+</div>
+<script src="/js/theme.js"></script>
 
-    <h2>Upload .txt File</h2>
+<h2>Upload .txt File</h2>
 
-    <!-- ✅ Optional message (e.g. duplicate filename or file rejected) -->
-    <c:if test="${not empty error}">
-        <p class="error">${error}</p>
-    </c:if>
-    <c:if test="${not empty message}">
-        <p class="success small-text">📁 File received. Processing upload...</p>
-    </c:if>
+<!-- ✅ Error or message -->
+<c:if test="${not empty error}">
+    <p class="error">${error}</p>
+</c:if>
+<c:if test="${not empty message}">
+    <p class="success small-text">📁 File received. Processing upload...</p>
+</c:if>
 
-    <form action="/note/upload" method="post" enctype="multipart/form-data">
-        File:
-        <input type="file" name="file" accept=".txt" required onchange="handleFileSelect(event)" /><br/><br>
+<form action="/note/upload" method="post" enctype="multipart/form-data">
+    File:
+    <input type="file" name="file" accept=".txt" required onchange="handleFileSelect(event)" /><br/><br>
+    <p id="file-feedback" class="success small-text" style="display: none;"></p>
 
-        <p id="file-feedback" class="success small-text" style="display: none;"></p>
+    Optional Filename: <br>
+    <input type="text" name="filename" id="filenameInput" /><br/>
+    <input type="submit" value="Upload" />
+</form><br><br>
 
-        Optional Filename: <br>
-        <input type="text" name="filename" id="filenameInput" /><br/>
+<form action="/dashboard" method="get">
+    <input type="submit" value="Back to Dashboard" />
+</form>
 
-        <input type="submit" value="Upload" />
-    </form><br><br>
-
-    <form action="/dashboard" method="get">
-        <input type="submit" value="Back to Dashboard" />
-    </form>
-
-    <!-- ✅ Success Modal -->
-    <c:if test="${not empty modalSuccess}">
-        <div class="modal" id="uploadSuccessModal" style="display:block">
-            <div class="modal-content">
-                <p style="font-size: 18px; font-weight: bold;">✅ Upload Successful!</p>
-                <p>The note <strong>${uploadedFile}</strong> has been uploaded and saved.</p>
+<!-- ✅ Success Modal with Stay & Dashboard buttons -->
+<c:if test="${not empty modalSuccess}">
+    <div class="modal" id="uploadSuccessModal" style="display:block">
+        <div class="modal-content">
+            <p style="font-size: 18px; font-weight: bold;">✅ Upload Successful!</p>
+            <p>The note <strong>${uploadedFile}</strong> has been uploaded and saved.</p>
+            <div class="btn-row">
+                <form action="/note/upload" method="get">
+                    <button type="submit">🔁 Stay Here</button>
+                </form>
                 <form action="/dashboard" method="get">
-                    <button type="submit">Go to Dashboard</button>
+                    <button type="submit">🏠 Go to Dashboard</button>
                 </form>
             </div>
         </div>
-    </c:if>
+    </div>
+</c:if>
 
-    <!-- ✅ JS to show selected file info and autofill filename -->
-    <script>
-        function handleFileSelect(event) {
-            const fileInput = event.target;
-            const file = fileInput.files[0];
-            const feedback = document.getElementById("file-feedback");
-            const filenameInput = document.getElementById("filenameInput");
+<!-- ✅ JS file feedback + autofill -->
+<script>
+    function handleFileSelect(event) {
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+        const feedback = document.getElementById("file-feedback");
+        const filenameInput = document.getElementById("filenameInput");
 
-            if (file && file.name.endsWith(".txt")) {
-                feedback.textContent = `✅ File selected`;
-                feedback.style.display = "block";
+        if (file && file.name.endsWith(".txt")) {
+            feedback.textContent = `✅ File selected`;
+            feedback.style.display = "block";
+            feedback.style.color = "#4caf50";
 
-                // Auto-fill optional filename if field is empty
-                if (!filenameInput.value) {
-                    filenameInput.value = file.name;
-                }
-            } else {
-                feedback.textContent = "❌ Invalid file type. Only .txt files are allowed.";
-                feedback.style.display = "block";
-                feedback.style.color = "red";
+            if (!filenameInput.value) {
+                filenameInput.value = file.name;
             }
+        } else {
+            feedback.textContent = "❌ Invalid file type. Only .txt files are allowed.";
+            feedback.style.display = "block";
+            feedback.style.color = "red";
         }
-    </script>
+    }
+</script>
 </body>
 </html>

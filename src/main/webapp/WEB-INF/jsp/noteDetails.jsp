@@ -2,8 +2,17 @@
 <html>
 <head><title>Note Details</title><link rel="stylesheet" href="/css/style.css"></head>
 <body>
-<button onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px;">🌗 Toggle Theme</button>
-    <script src="/js/theme.js"></script>
+<div class="theme-switcher">
+    <select id="themeDropdown" onchange="changeTheme(this.value)">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌑 Dark</option>
+        <option value="rose">🌸 Rose</option>
+        <option value="lavender">💜 Lavender</option>
+        <option value="aqua">🌊 Aqua</option>
+    </select>
+</div>
+<script src="/js/theme.js"></script>
+
     <h2>Note Details</h2>
     <p><strong>Filename:</strong> ${note.filename}</p>
     <p><strong>Content:</strong></p>

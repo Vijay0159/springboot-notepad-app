@@ -1,6 +1,7 @@
 package com.notepad.app.controller;
 
 import com.notepad.app.entity.Note;
+import com.notepad.app.entity.TrashedNote;
 import com.notepad.app.service.NoteService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -342,7 +343,7 @@ public class NoteViewController {
         Optional<Note> note = noteService.getNoteById(noteId);
         if (note.isPresent() && note.get().getUserId().equals(session.getAttribute("userId"))) {
             String deletedName = note.get().getFilename();
-            noteService.deleteNoteById(noteId);
+            noteService.moveNoteToTrash(note.get());
 
             model.addAttribute("modalSuccess", true);
             model.addAttribute("deletedFile", deletedName);
@@ -369,7 +370,7 @@ public class NoteViewController {
         Optional<Note> note = noteService.getNoteByFilenameAndUserId(finalFilename, userId);
 
         if (note.isPresent()) {
-            noteService.deleteNoteById(note.get().getId());
+            noteService.moveNoteToTrash(note.get());
             model.addAttribute("modalSuccess", true);
             model.addAttribute("deletedFile", finalFilename);
             return "deleteByFilename";
@@ -409,5 +410,55 @@ public class NoteViewController {
         }
     }
 
+    @GetMapping("/note/trash")
+    public String showTrash(HttpSession session, Model model) {
+        if (session.getAttribute("userId") == null) return "login";
+        Long userId = (Long) session.getAttribute("userId");
+        model.addAttribute("trashedNotes", noteService.getTrashedNotesByUser(userId));
+        return "trash"; // this maps to trash.jsp
+    }
+
+    @PostMapping("/note/trash/restore")
+    public String restoreFromTrash(@RequestParam Long trashId,
+                                   HttpSession session,
+                                   Model model) {
+        if (isNotLoggedIn(session)) return "login";
+
+        Optional<Note> restoredOpt = noteService.restoreNoteFromTrash(trashId);
+        if (restoredOpt.isPresent()) {
+            model.addAttribute("modalSuccess", true);
+            model.addAttribute("restoredFile", restoredOpt.get().getFilename());
+        } else {
+            model.addAttribute("error", "Unable to restore the note.");
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        model.addAttribute("trashedNotes", noteService.getTrashedNotesByUser(userId));
+        return "trash";
+    }
+
+    @PostMapping("/note/trash/delete-permanent")
+    public String deletePermanently(@RequestParam Long trashId,
+                                    HttpSession session,
+                                    Model model) {
+        if (isNotLoggedIn(session)) return "login";
+
+        Long userId = (Long) session.getAttribute("userId");
+        List<TrashedNote> trashedNotes = noteService.getTrashedNotesByUser(userId);
+        model.addAttribute("trashedNotes", trashedNotes);
+
+        Optional<TrashedNote> noteToDelete = trashedNotes.stream()
+                .filter(n -> n.getId().equals(trashId))
+                .findFirst();
+
+        if (noteToDelete.isPresent() && noteService.deleteNoteFromTrashPermanently(trashId)) {
+            model.addAttribute("permanentDeleteSuccess", true);
+            model.addAttribute("deletedFile", noteToDelete.get().getFilename());
+        } else {
+            model.addAttribute("error", "❌ Could not delete the note permanently.");
+        }
+
+        return "trash";
+    }
 
 }

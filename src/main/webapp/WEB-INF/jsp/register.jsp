@@ -6,18 +6,25 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css' />">
 </head>
 <body>
-<button onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px;">🌗 Toggle Theme</button>
-    <script src="/js/theme.js"></script>
+<div class="theme-switcher">
+    <select id="themeDropdown" onchange="changeTheme(this.value)">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌑 Dark</option>
+        <option value="rose">🌸 Rose</option>
+        <option value="lavender">💜 Lavender</option>
+        <option value="aqua">🌊 Aqua</option>
+    </select>
+</div>
+<script src="/js/theme.js"></script>
+
 <h2>Register</h2>
 
-<c:if test="${not empty message}">
-    <p style="color:green">${message}</p>
-</c:if>
+<!-- ✅ Error Message -->
 <c:if test="${not empty error}">
-    <p style="color:red">${error}</p>
+    <p class="error">${error}</p>
 </c:if>
 
-<!-- ✅ Fixed action path -->
+<!-- ✅ Registration Form -->
 <form action="/doRegister" method="post">
     Username: <input type="text" name="username" required /><br/><br/>
     Password: <input type="password" name="password" required /><br/><br/>
@@ -25,5 +32,18 @@
 </form>
 
 <p>Already have an account? <a href="/login">Login here</a></p>
+
+<!-- ✅ Modal shown only when modalSuccess = true -->
+<c:if test="${modalSuccess}">
+    <div class="modal" style="display:block;">
+        <div class="modal-content">
+            <p style="font-size: 18px; font-weight: bold;">✅ Registered Successfully!</p>
+            <p>User <strong>${registeredUsername}</strong> has been created.</p>
+            <form action="/login" method="get">
+                <button type="submit">🔐 Login Now</button>
+            </form>
+        </div>
+    </div>
+</c:if>
 </body>
 </html>

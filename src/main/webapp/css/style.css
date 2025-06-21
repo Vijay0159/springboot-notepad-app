@@ -205,3 +205,105 @@ a:hover {
     font-weight: bold;
     margin: 15px auto;
 }
+[data-theme="rose"] {
+    --bg-color: #fff0f5;
+    --text-color: #4b2c2c;
+    --form-bg: #ffe4e1;
+    --button-bg: #d36c6c;
+    --button-hover: #b64b4b;
+    --link-color: #e91e63;
+}
+
+[data-theme="lavender"] {
+    --bg-color: #f5f0ff;
+    --text-color: #3e2761;
+    --form-bg: #e6e0f8;
+    --button-bg: #9b59b6;
+    --button-hover: #7e3ea1;
+    --link-color: #8e44ad;
+}
+
+[data-theme="aqua"] {
+    --bg-color: #e0f7fa;
+    --text-color: #004d40;
+    --form-bg: #b2ebf2;
+    --button-bg: #0097a7;
+    --button-hover: #00796b;
+    --link-color: #00acc1;
+}
+/* 🌗 Theme Dropdown Styling */
+.theme-switcher {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.theme-switcher select {
+    padding: 8px 14px;
+    font-size: 14px;
+    border: 1px solid var(--button-bg);
+    border-radius: 6px;
+    background-color: var(--form-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.theme-switcher select:hover {
+    border-color: var(--button-hover);
+    background-color: var(--button-hover);
+    color: #fff;
+}
+
+/* Optional: dropdown arrow style reset */
+.theme-switcher select:focus {
+    outline: none;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+.modal-buttons button {
+    min-width: 160px;
+    padding: 12px 24px;
+    font-size: 15px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-buttons button i {
+    margin-right: 8px;
+}
+.dashboard-card {
+    background-color: var(--form-bg);
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+#dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    justify-content: center;   /* ⬅️ ensures centering of last row */
+    align-items: start;
+}

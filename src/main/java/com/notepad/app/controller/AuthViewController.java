@@ -56,14 +56,15 @@ public class AuthViewController {
                                  Model model) {
         try {
             userService.createUser(username, password);
-            model.addAttribute("message", "Registration successful! Please login.");
-            return "login";
+            // ✅ Show success modal on the register page itself
+            model.addAttribute("modalSuccess", true);
+            model.addAttribute("registeredUsername", username);
+            return "register";
         } catch (DataIntegrityViolationException e) {
             model.addAttribute("error", "Username already exists. Try another.");
             return "register";
         }
     }
-
 
     @GetMapping("/deleteAccount")
     public String showDeleteForm() {
