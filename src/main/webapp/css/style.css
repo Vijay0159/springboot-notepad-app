@@ -31,13 +31,68 @@ h2 {
     margin-bottom: 20px;
 }
 
-form {
-    display: inline-block;
-    background: var(--form-bg);
-    padding: 25px 40px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+.form-wrapper {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 40px;
+    background-color: var(--form-bg);
+    color: var(--text-color);
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
+
+.form-wrapper h2 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-wrapper .form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-card input[type="text"],
+.form-card input[type="number"],
+.form-card input[type="file"],
+.form-card textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.form-card input[type="submit"],
+.form-card button {
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    background-color: var(--button-bg);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.form-card input[type="submit"]:hover,
+.form-card button:hover {
+    background-color: var(--button-hover);
+}
+
+.form-footer {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.form-footer form {
+    display: inline-block;
+}
+
 
 input[type="text"], input[type="password"], input[type="number"], textarea {
     padding: 10px;
@@ -306,4 +361,13 @@ a:hover {
     margin: 0 auto;
     justify-content: center;   /* ⬅️ ensures centering of last row */
     align-items: start;
+}
+.scrollable-content {
+    overflow-x: auto;
+    background-color: #1e1e1e;
+    padding: 12px;
+    border-radius: 6px;
+    color: #f1f1f1;
+    max-width: 100%;
+    white-space: pre;
 }

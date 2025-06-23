@@ -7,16 +7,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-// UserService.java
 @Service
 public class UserService {
+
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private NoteService noteService;
 
     public UserData createUser(String username, String password) {
         UserData user = new UserData();
         user.setUsername(username);
-        user.setPassword(password); // later you can hash it
+        user.setPassword(password); // You may hash this later
         user.setUserType("USER");
         return userRepo.save(user);
     }
@@ -27,6 +30,9 @@ public class UserService {
     }
 
     public void deleteAccount(Long userId) {
+        // 🧹 Clean up notes and trash before deleting user
+        noteService.deleteNotesByUserId(userId);
+        noteService.deleteTrashedNotesByUserId(userId);
         userRepo.deleteById(userId);
     }
 }

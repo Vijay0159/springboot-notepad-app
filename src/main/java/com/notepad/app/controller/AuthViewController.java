@@ -53,8 +53,13 @@ public class AuthViewController {
     @PostMapping("/doRegister")
     public String handleRegister(@RequestParam String username,
                                  @RequestParam String password,
+                                 @RequestParam String confirmPassword,
                                  Model model) {
         try {
+            if (!password.equals(confirmPassword)) {
+                model.addAttribute("error", "Passwords do not match.");
+                return "register";
+            }
             userService.createUser(username, password);
             // ✅ Show success modal on the register page itself
             model.addAttribute("modalSuccess", true);

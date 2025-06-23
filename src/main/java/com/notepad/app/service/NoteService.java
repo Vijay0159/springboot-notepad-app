@@ -111,4 +111,17 @@ public class NoteService {
         return false;
     }
 
+    // ✅ NEW: Delete all active notes of a user
+    @Transactional
+    public void deleteNotesByUserId(Long userId) {
+        List<Note> notes = noteRepo.findByUserId(userId);
+        noteRepo.deleteAll(notes);
+    }
+
+    // ✅ NEW: Delete all trashed notes of a user
+    @Transactional
+    public void deleteTrashedNotesByUserId(Long userId) {
+        List<TrashedNote> trashed = trashRepo.findByUserId(userId);
+        trashRepo.deleteAll(trashed);
+    }
 }

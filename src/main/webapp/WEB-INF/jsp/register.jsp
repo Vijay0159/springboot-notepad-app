@@ -19,21 +19,22 @@
 
 <h2>Register</h2>
 
-<!-- ✅ Error Message -->
+<!-- ❌ Error Message -->
 <c:if test="${not empty error}">
     <p class="error">${error}</p>
 </c:if>
 
-<!-- ✅ Registration Form -->
+<!-- 🧾 Registration Form -->
 <form action="/doRegister" method="post">
     Username: <input type="text" name="username" required /><br/><br/>
     Password: <input type="password" name="password" required /><br/><br/>
+    Confirm Password: <input type="password" name="confirmPassword" required /><br/><br/>
     <input type="submit" value="Register" />
 </form>
 
 <p>Already have an account? <a href="/login">Login here</a></p>
 
-<!-- ✅ Modal shown only when modalSuccess = true -->
+<!-- ✅ Modal shown only on success -->
 <c:if test="${modalSuccess}">
     <div class="modal" style="display:block;">
         <div class="modal-content">

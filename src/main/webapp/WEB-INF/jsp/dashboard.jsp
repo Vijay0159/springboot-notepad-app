@@ -175,16 +175,22 @@
 </div>
 
 <!-- ⚠️ Delete Account Modal -->
+<!-- ⚠️ Delete Account Modal -->
 <div id="deleteAccountModal" class="modal" style="display:none;">
     <div class="modal-content">
         <h3>⚠️ Confirm Account Deletion</h3>
-        <p>Are you sure you want to <strong>delete your account permanently</strong>? This action cannot be undone.</p>
+        <p>
+            This action will <strong>permanently delete your account</strong> along with <strong>all notes and data associated with it</strong>.
+            <br><br>
+            Are you absolutely sure you want to proceed? This cannot be undone.
+        </p>
         <form action="/doDelete" method="post" style="margin-top: 20px;">
             <button type="submit" style="background-color: crimson;">Yes, Delete My Account</button>
         </form><br>
         <button onclick="closeDeleteModal()">Cancel</button>
     </div>
 </div>
+
 
 <script>
     function openDeleteModal() {
