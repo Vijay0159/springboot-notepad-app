@@ -1,187 +1,173 @@
 # Project: Notepad Application (Spring Boot + MySQL + JSP)
 
-A lightweight, full-stack Notepad web application designed to allow authenticated users to upload, view, update, delete, and download plain text notes. The system follows an MVC pattern using Spring Boot, Hibernate (JPA), JSP, and MySQL.
+A full-stack Notepad web application with a modern UI/UX, built using Spring Boot, Hibernate (JPA), MySQL, and JSP. It supports secure user authentication, file upload, CRUD operations, download (single/bulk), theming, soft delete via trash, and dashboard navigation. Recent updates include search, confirm password, cascade delete, and full JSP redesigns.
 
 ---
 
 ## ✅ What Went Well
 
-- **Modular Design**  
-  Clear separation between controller, service, repository, and entity layers ensured clean code and easy maintenance.
+- **Modular Design**
+  Clear separation between controller, service, repository, and entity layers ensured maintainability.
 
-- **Session-Based Authentication**  
-  Logged-in users are tracked using session attributes (`userId`, `username`), offering simple and secure access control.
+- **Session-Based Authentication**
+  User login state managed via session attributes (`userId`, `username`).
 
-- **CRUD Operations by ID & Filename**  
-  Users can manage notes via both internal ID and custom filenames.
+- **Full CRUD Support**
+  Notes can be created, updated, deleted (soft/permanent), and fetched by ID or filename.
 
-- **Robust File Upload Handling**  
-  `.txt` file uploads support both auto and manual naming, with validation for extensions, special characters, and double dots.
+- **File Upload (Single .txt)**
+  Users can upload `.txt` files with optional custom filenames, extension normalization, and special character validation.
 
-- **Filename Normalization**  
-  Intelligent `.txt` extension handling added across all features to avoid duplicates and maintain consistency.
+- **Download Support**
+  Users can download notes individually or bulk-download all as a `.zip`.
 
-- **Modal-based Feedback System**  
-  Professional modals implemented for create, update, delete, upload, restore, and register actions — delivering clean and contextual feedback post-success.
+- **Trash Panel**
+  Deleted notes move to trash with timestamp; can be restored or deleted permanently.
 
-- **Download Feature (Single & Bulk)**  
-  Users can:
-  - Download individual notes by ID or filename as `.txt`.
-  - Bulk-download all notes as `.zip`.
+- **Dashboard Revamp**
+  The dashboard now features responsive cards, hover effects, and better layout management.
 
-- **Trash Panel (Soft Delete + Restore)**  
-  Trashed notes moved to a dedicated view for recovery or permanent deletion, with themed modals and confirmations.
+- **Theme Toggle (Light/Dark + More)**
+  Multiple themes (light, dark, rose, lavender, aqua) using CSS variables and `<select>`-based toggle.
 
-- **Theme Toggle**  
-  Multiple color themes (Light, Dark, Rose, Lavender, Aqua) with smooth switching using CSS variables and JS sync.
+- **JSP-Wide Modal Support**
+  All forms/actions now give modal-based feedback with contextual options like “Stay Here” and “Go to Dashboard”.
 
-- **Dashboard UI Redesign**  
-  Converted dashboard to a responsive, modern grid layout using dashboard cards and adaptive spacing.
+- **Cascade Delete**
+  Deleting a user now removes all their notes and trashed entries automatically.
 
-- **Universal Modal Support with Stay/Go Logic**  
-  All modals now include "Stay Here" and "Go to Dashboard" buttons for improved UX continuity.
+- **Confirm Password Support**
+  Added confirm password validation during registration to ensure better UX.
 
----
+- **Client-Side Search (All Notes)**
+  Search bar added to filter notes by filename directly on the UI without hitting the server.
 
-## ❌ What Went Wrong / Impediments
-
-- **Filename Discrepancies**  
-  Some flows appended `.txt`, while others didn’t — causing silent duplicates. Fixed with centralized logic.
-
-- **Lack of Feedback on JSP Pages**  
-  Many early pages showed no confirmation/error, confusing users about the result of their actions.
-
-- **Modal Layout Bugs**  
-  Modal buttons used to overflow or stack awkwardly — now fixed using responsive flex layout.
-
-- **Notes Not Centering**  
-  On wider screens, incomplete rows of dashboard cards looked unbalanced. Fixed with auto-centering logic.
-
-- **Account Deletion Missing Note Cleanup**  
-  Deleting a user account did not remove their notes. To be fixed in the next phase.
+- **Fully Refactored JSPs**
+  All pages (create, delete, update, fetch, upload, register, trash, etc.) now follow modern layout, spacing, and font styling for a professional experience.
 
 ---
 
-## 🧱 Impediments We Overcame
+## ❌ What Went Wrong / Fixes Applied
 
-- **Consistent `.txt` Extension Logic**  
-  Introduced `normalizeTxtExtension()` to apply rules consistently across all CRUD and upload flows.
+- **Inconsistent File Handling**
+  Fixed filename extension appending logic and duplication issues using central helper logic.
 
-- **Modal Button UX Upgrade**  
-  Modals now include two-choice buttons (`Stay Here`, `Go to Dashboard`) and uniform styling.
+- **Poor Modal Design Early On**
+  Refactored all modal boxes with padding, spacing, and better button placement using flexbox.
 
-- **Trash View Table Styling**  
-  Restyled the trash view table layout, made it mobile-responsive and added clear action buttons.
+- **Trash Date Missing**
+  Previously, deletedAt timestamps were not rendered due to missing `<fmt:formatDate>` taglib. This was corrected.
 
-- **Dashboard Pro UX Overhaul**  
-  Grid-based responsive layout with hover effects and backdrop styling elevated the professional look.
+- **Overflow in Note Content**
+  Added proper wrapping, scrolling, and structure in note content containers (`<pre>`) to avoid horizontal scrolling.
 
-- **Proper Redirect on Registration**  
-  Registration now triggers a modal success message with a clean "Login" redirection path.
+- **Account Delete Left Notes Behind**
+  Initially, user notes remained even after account deletion. This is now fixed using proper cascade behavior at DB and entity level.
 
 ---
 
-## 🌱 Future Enhancements / Upgrade Ideas
+## 🧱 Problems We Overcame
 
-### 🔧 Backend Enhancements
-- **Cascade Delete Notes on Account Deletion** 🔜  
-  Ensure all notes and trashed items of a user are deleted when account is removed.  
-  ➕ Add a warning message in modal for this consequence.
+- ✅ Uniform modal logic across all actions.
+- ✅ Style overhaul with responsive containers, adaptive spacing.
+- ✅ Note search implemented fully in frontend (client-side search).
+- ✅ Confirm password validation logic added in both backend and JSP.
+- ✅ Cascade delete via `orphanRemoval = true` and `@OneToMany` relationship.
+- ✅ Content overflow fix in fetch-by-ID and fetch-by-filename JSPs.
+- ✅ Fixed trash note timestamp visibility via proper JSTL formatting.
 
-- **Note Versioning**  
-  Maintain edit history with rollback support.
+---
 
-- **Tagging and Folders**  
-  Logical grouping for better note organization.
+## 🌱 Roadmap Ahead
 
-- **Note Analytics**  
-  Show word counts, last updated date, etc.
+### 📥 Import & Upload
 
-- **Audit Logs**  
-  Track login, edits, deletions, and downloads.
+- **Bulk Upload from ZIP (with unique .txt files)** 🔜  
+  Users can upload multiple text files at once.
 
-### 🔐 Security & Access
-- **Role-Based Access Control**  
-  Add support for ADMIN, MODERATOR in future.
+- **File Validation**  
+  Ensure `.txt` extension and uniqueness before accepting uploaded files.
 
-### 📥 Import / Export
-- **Import ZIP**  
-  Bulk upload `.txt` files via ZIP.
+### 📦 Bulk Operations
 
-- **Export Metadata**  
-  Export filename/content info as CSV or JSON.
+- **Checkbox-Based Bulk Select** 🔜  
+  Add support in All Notes and Trash views for selecting multiple notes.
 
-### 🧠 AI Integration (Post-MVP)
-- **AI Assistant for Writing**  
-  GPT-powered assistant for writing content directly from prompts.
+- **Bulk Download (Selective)**  
+  Selected notes to be downloaded as a `.zip` (single file = `.txt`).
 
-### 💡 UI Improvements
-- **Upgrade All JSP Views** 🔜  
-  Make all JSPs consistent with the new dashboard style.
+- **Bulk Delete (All Notes)**  
+  Move selected notes to trash.
 
-- **Text Wrapping Fix on Fetch** 🔜  
-  Prevent overflow issues for large content fetched by ID/filename.
+- **Bulk Restore / Delete (Trash)**  
+  Restore or permanently delete selected trashed notes.
 
-- **Add Introductory Paragraphs on JSPs** 🔜  
-  Add short context descriptions to help non-technical users understand each feature.
+### ✍️ UI Enhancements
+
+- Add subtle tooltips, animations, and accessibility improvements.
+- Add help text or short instructions above complex features (like bulk actions).
+
+### 🧠 AI Assistant (Post-MVP)
+
+- Let user type a prompt like “summarize India’s freedom struggle” and the app auto-generates a note using GPT.
 
 ---
 
 ## 💻 UI Development Tracker
 
-| Feature                         | Status       |
-|----------------------------------|--------------|
-| Login & Session Auth             | ✅ Completed |
-| Dashboard (Pro Design)           | ✅ Completed |
-| Create / Update / Delete Views  | ✅ Completed |
-| Upload Form                      | ✅ Completed |
-| Fetch by ID / Filename           | ✅ Completed |
-| Download Single Note             | ✅ Completed |
-| Download All as ZIP              | ✅ Completed |
-| Sort + Expand in All Notes View  | ✅ Completed |
-| Modal-based Success Messages     | ✅ Completed |
-| Stay/Go Buttons in Modals        | ✅ Completed |
-| Trash / Restore Panel            | ✅ Completed |
-| Dynamic Theme Support            | ✅ Completed |
-| Role-Based Access                | 🔜 Planned   |
-| Cascade Delete on Account Delete| 🔜 Planned   |
-| Overflow/Text Wrapping Fixes     | 🔜 Planned   |
-| Tag, Folder, Search UI           | 🔜 Planned   |
-| AI Note Assistant                | 🔜 Planned   |
+| Feature                                | Status       |
+|----------------------------------------|--------------|
+| Dashboard Layout (Cards + Grid)        | ✅ Completed |
+| Theme Toggle with CSS Variables        | ✅ Completed |
+| Create / Update / Delete Notes         | ✅ Completed |
+| Upload Single Note                     | ✅ Completed |
+| Fetch by ID / Filename                 | ✅ Completed |
+| Download Note (.txt)                   | ✅ Completed |
+| Download All Notes (.zip)              | ✅ Completed |
+| Trash + Restore + Permanent Delete     | ✅ Completed |
+| Confirm Password on Register           | ✅ Completed |
+| Cascade Delete on Account Removal      | ✅ Completed |
+| Search Notes (UI Only)                 | ✅ Completed |
+| Modal Feedback System                  | ✅ Completed |
+| JSP Layout Refactor                    | ✅ Completed |
+| Bulk Upload from ZIP                   | 🔜 Planned   |
+| Checkbox Bulk Operations               | 🔜 Planned   |
+| AI Writing Assistant                   | 🔜 Future    |
 
 ---
 
-## 📦 File Structure & Conventions
+## 📦 File Structure Highlights
 
-| File/Directory                      | Purpose                                                |
-|------------------------------------|--------------------------------------------------------|
-| `NoteViewController.java`          | JSP view logic                                         |
-| `NoteRestController.java`          | REST endpoints for testing                             |
-| `NoteService.java`                 | Business logic                                         |
-| `NoteRepository.java`              | JPA DAO                                                |
-| `Note.java`                        | Main entity                                            |
-| `TrashedNote.java`                 | Soft-deleted notes entity                              |
-| `webapp/jsp/*.jsp`                 | JSP views per operation                                |
-| `webapp/css/style.css`             | Global themed styles with theme variables              |
-| `webapp/js/theme.js`               | Handles dropdown theme logic                           |
-| `project-journal.md`               | Developer changelog                                    |
+| File/Folder                      | Description                                  |
+|----------------------------------|----------------------------------------------|
+| `/entity/Note.java`             | Note entity (with userId & filename)         |
+| `/entity/TrashedNote.java`      | Soft-deleted notes entity                    |
+| `/entity/UserData.java`         | Registered user info                         |
+| `/service/NoteService.java`     | Core note logic                              |
+| `/service/UserService.java`     | User create/login/delete logic               |
+| `/repository/*Repository.java`  | JPA interfaces for DB access                 |
+| `/jsp/*.jsp`                    | All user-facing views                        |
+| `/css/style.css`                | Core stylesheet with theme variables         |
+| `/js/theme.js`                  | JS theme switcher                            |
 
 ---
 
 ## 📅 Timeline Snapshot
 
-| Feature                             | Status       |
-|-------------------------------------|--------------|
-| CRUD + Upload                       | ✅ Completed |
-| Modal-based Feedback                | ✅ Completed |
-| Theme Support                       | ✅ Completed |
-| Trash / Restore                     | ✅ Completed |
-| Pro Dashboard Layout                | ✅ Completed |
-| JSP UI Refactor (All)               | 🔜 Next Up   |
-| Data Cleanup on Account Deletion    | 🔜 Next Up   |
-| Responsive Fix for Fetch Views      | 🔜 Next Up   |
-| AI Assistant                        | 🔜 Future    |
+| Feature                        | Status       |
+|--------------------------------|--------------|
+| Base CRUD + Upload             | ✅ Completed |
+| Download (Single & Bulk)       | ✅ Completed |
+| Trash + Restore System         | ✅ Completed |
+| Theming                        | ✅ Completed |
+| Registration Improvements      | ✅ Completed |
+| Cascading Deletion             | ✅ Completed |
+| UI-Wide Modal Feedback         | ✅ Completed |
+| Search Bar (UI-Level)          | ✅ Completed |
+| Bulk Actions (Checkbox)        | 🔜 Next Up   |
+| Bulk ZIP Upload                | 🔜 Next Up   |
+| AI Note Assistant              | 🔜 Future    |
 
 ---
 
-> _“This file is a living journal — a reflection of how the Notepad App is evolving from scratch into a powerful productivity platform.”_
+> _“This journal documents the journey from a basic CRUD app to a polished, user-friendly notepad platform.”_
