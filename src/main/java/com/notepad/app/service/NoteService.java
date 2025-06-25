@@ -124,4 +124,11 @@ public class NoteService {
         List<TrashedNote> trashed = trashRepo.findByUserId(userId);
         trashRepo.deleteAll(trashed);
     }
+
+    public List<Note> getNotesByIdsAndUser(List<Long> ids, Long userId) {
+        return noteRepo.findAllById(ids).stream()
+                .filter(note -> note.getUserId().equals(userId))
+                .toList();
+    }
+
 }

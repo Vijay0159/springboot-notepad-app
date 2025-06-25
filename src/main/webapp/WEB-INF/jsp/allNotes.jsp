@@ -7,6 +7,31 @@
     <title>All Notes</title>
     <link rel="stylesheet" href="<c:url value='/css/style.css' />" />
     <style>
+    .bulk-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 15px auto 25px auto;
+        flex-wrap: wrap;
+    }
+
+    .bulk-actions button {
+        background-color: var(--button-bg);
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .bulk-actions button:hover {
+        background-color: var(--button-hover);
+    }
+
+    .checkbox-cell {
+        text-align: center;
+    }
+
         .container {
             max-width: 1200px;
             margin: 80px auto;
@@ -145,6 +170,39 @@
             font-size: 0.95em;
             color: gray;
         }
+        /* ✅ Checkbox Column Styling */
+        .checkbox-cell {
+            text-align: center;
+            vertical-align: middle;
+            width: 40px;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: var(--button-bg); /* ✅ Matches your theme color */
+            cursor: pointer;
+            margin: auto;
+        }
+
+        /* Align checkbox in table header */
+        th.checkbox-cell input[type="checkbox"] {
+            margin-top: 2px;
+        }
+
+        .bulk-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .bulk-actions button {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
     </style>
 </head>
 <body>
@@ -201,37 +259,54 @@
 
     <!-- 📋 Table -->
     <c:if test="${not empty notes}">
-        <table id="notesTable">
-            <thead>
+        <form method="post" id="bulkForm">
+
+    <div class="bulk-actions">
+        <button type="button" onclick="selectAllCheckboxes(true)">✅ Select All</button>
+        <button type="button" onclick="selectAllCheckboxes(false)">❌ Deselect All</button>
+        <button type="submit" formaction="/note/bulk-download">⬇️ Download Selected</button>
+        <button type="submit" formaction="/note/bulk-delete" onclick="return confirm('Move selected notes to Trash?');">🗑️ Delete Selected</button>
+    </div>
+
+    <table id="notesTable"> <!-- ✅ Start table here -->
+        <thead>
+            <tr>
+                <th class="checkbox-cell"><input type="checkbox" onclick="toggleSelectAll(this)" /></th>
+                <th>Note ID</th>
+                <th>Filename</th>
+                <th>Content</th>
+                <th>User Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach var="note" items="${notes}">
                 <tr>
-                    <th>Note ID</th>
-                    <th>Filename</th>
-                    <th>Content</th>
-                    <th>User Type</th>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" name="selectedIds" value="${note.id}" class="note-checkbox" />
+                    </td>
+                    <td>${note.id}</td>
+                    <td class="filename-cell">${note.filename}</td>
+                    <td class="content-cell">
+                        <c:choose>
+                            <c:when test="${fn:length(note.content) > 100}">
+                                <div class="preview">${fn:substring(note.content, 0, 100)}...</div>
+                                <div class="full-content">${note.content}</div>
+                                <button type="button" class="toggle-btn" onclick="toggleContent(this)">🔽 Show More</button>
+
+                            </c:when>
+                            <c:otherwise>
+                                ${note.content}
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>${note.userType}</td>
                 </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="note" items="${notes}">
-                    <tr>
-                        <td>${note.id}</td>
-                        <td class="filename-cell">${note.filename}</td>
-                        <td class="content-cell">
-                            <c:choose>
-                                <c:when test="${fn:length(note.content) > 100}">
-                                    <div class="preview">${fn:substring(note.content, 0, 100)}...</div>
-                                    <div class="full-content">${note.content}</div>
-                                    <button class="toggle-btn" onclick="toggleContent(this)">🔽 Show More</button>
-                                </c:when>
-                                <c:otherwise>
-                                    ${note.content}
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>${note.userType}</td>
-                    </tr>
-                </c:forEach>
-            </tbody>
-        </table>
+            </c:forEach>
+        </tbody>
+    </table> <!-- ✅ Close table here -->
+</form>
+
+
     </c:if>
 
     <!-- ❗Empty -->
@@ -241,6 +316,42 @@
 
     <!-- 🔙 Back -->
     <div class="back-button">
+    <!-- ✅ Bulk Delete Modal -->
+    <c:if test="${bulkDeleteSuccess}">
+        <div class="modal" style="display:block;" id="bulkDeleteModal">
+            <div class="modal-content">
+                <p style="font-size: 20px; font-weight: bold;">🗑️ Notes Moved to Trash</p>
+                <p>${deletedFile}</p>
+                <div class="modal-buttons">
+                    <form method="get" action="/note/fetch/all">
+                        <button type="submit">🔁 Stay Here</button>
+                    </form>
+                    <form method="get" action="/dashboard">
+                        <button type="submit">🏠 Go to Dashboard</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
+    <!-- ✅ Bulk Download Modal (Optional: if you plan to show success message) -->
+    <c:if test="${bulkDownloadSuccess}">
+        <div class="modal" style="display:block;" id="bulkDownloadModal">
+            <div class="modal-content">
+                <p style="font-size: 20px; font-weight: bold;">⬇️ Notes Downloaded</p>
+                <p>${downloadedFile}</p>
+                <div class="modal-buttons">
+                    <form method="get" action="/note/fetch/all">
+                        <button type="submit">🔁 Stay Here</button>
+                    </form>
+                    <form method="get" action="/dashboard">
+                        <button type="submit">🏠 Go to Dashboard</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
         <form action="/dashboard" method="get">
             <input type="submit" value="🏠 Back to Dashboard" />
         </form>
@@ -273,7 +384,24 @@ document.getElementById("searchInput").addEventListener("input", function () {
         row.style.display = filename.includes(value) ? "" : "none";
     });
 });
+
+function selectAllCheckboxes(value) {
+    document.querySelectorAll('.note-checkbox').forEach(cb => cb.checked = value);
+}
+
+function toggleSelectAll(source) {
+    selectAllCheckboxes(source.checked);
+}
+
+document.getElementById("bulkForm").addEventListener("submit", function (e) {
+    const anyChecked = [...document.querySelectorAll(".note-checkbox")].some(cb => cb.checked);
+    if (!anyChecked) {
+        e.preventDefault();
+        alert("⚠️ Please select at least one note to perform this action.");
+    }
+});
 </script>
+
 
 </body>
 </html>

@@ -43,7 +43,6 @@
             color: var(--text-color);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.15);
-            transition: background-color 0.3s, color 0.3s;
         }
 
         th, td {
@@ -89,6 +88,40 @@
             color: gray;
             margin-top: 20px;
         }
+
+        .checkbox-cell {
+            text-align: center;
+            vertical-align: middle;
+            width: 40px;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: var(--button-bg);
+            cursor: pointer;
+            margin: auto;
+        }
+
+        .bulk-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px auto;
+            flex-wrap: wrap;
+        }
+
+        .bulk-actions button {
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .bulk-actions button:hover {
+            background-color: var(--button-hover);
+        }
     </style>
 </head>
 <body>
@@ -118,33 +151,46 @@
     </c:if>
 
     <c:if test="${not empty trashedNotes}">
-        <table id="trashTable">
-            <thead>
-                <tr>
-                    <th>📁 Filename</th>
-                    <th>🕓 Deleted At</th>
-                    <th>⚙️ Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="note" items="${trashedNotes}">
+        <form method="post" id="trashBulkForm">
+            <div class="bulk-actions">
+                <button type="button" onclick="toggleAll(true)">✅ Select All</button>
+                <button type="button" onclick="toggleAll(false)">❌ Deselect All</button>
+                <button type="submit" formaction="/note/trash/bulk-restore">♻️ Restore Selected</button>
+                <button type="submit" formaction="/note/trash/bulk-delete">🗑️ Delete Selected</button>
+            </div>
+
+            <table id="trashTable">
+                <thead>
                     <tr>
-                        <td class="filename-cell">${note.filename}</td>
-                        <td>${note.deletedAt}</td>
-                        <td>
-                            <form method="post" action="/note/trash/restore">
-                                <input type="hidden" name="trashId" value="${note.id}" />
-                                <button type="submit">♻️ Restore</button>
-                            </form>
-                            <form method="post" action="/note/trash/delete-permanent" onsubmit="return confirm('Are you sure you want to permanently delete this note?');">
-                                <input type="hidden" name="trashId" value="${note.id}" />
-                                <button type="submit" style="background-color: #d9534f;">🗑️ Delete Permanently</button>
-                            </form>
-                        </td>
+                        <th class="checkbox-cell"><input type="checkbox" onclick="toggleMaster(this)" /></th>
+                        <th>📁 Filename</th>
+                        <th>🕓 Deleted At</th>
+                        <th>⚙️ Actions</th>
                     </tr>
-                </c:forEach>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <c:forEach var="note" items="${trashedNotes}">
+                        <tr>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" name="selectedTrashIds" value="${note.id}" class="trash-checkbox" />
+                            </td>
+                            <td class="filename-cell">${note.filename}</td>
+                            <td>${note.deletedAt}</td>
+                            <td>
+                                <form method="post" action="/note/trash/restore">
+                                    <input type="hidden" name="trashId" value="${note.id}" />
+                                    <button type="submit">♻️ Restore</button>
+                                </form>
+                                <form method="post" action="/note/trash/delete-permanent" onsubmit="return confirm('Are you sure you want to permanently delete this note?');">
+                                    <input type="hidden" name="trashId" value="${note.id}" />
+                                    <button type="submit" style="background-color: #d9534f;">🗑️ Delete Permanently</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </form>
     </c:if>
 
     <!-- ✅ Restore Modal -->
@@ -183,6 +229,42 @@
         </div>
     </c:if>
 
+    <!-- ♻️ Bulk Restore Modal -->
+    <c:if test="${bulkRestoreSuccess}">
+        <div class="modal" style="display:block" id="bulkRestoreModal">
+            <div class="modal-content">
+                <p style="font-size: 20px; font-weight: bold;">♻️ Notes Restored!</p>
+                <p><strong>${restoredFile}</strong></p>
+                <div class="modal-buttons">
+                    <form method="get" action="/note/trash">
+                        <button type="submit">🔁 Stay Here</button>
+                    </form>
+                    <form method="get" action="/dashboard">
+                        <button type="submit">🏠 Go to Dashboard</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
+    <!-- 🗑️ Bulk Delete Modal -->
+    <c:if test="${bulkDeleteSuccess}">
+        <div class="modal" style="display:block" id="bulkDeleteModal">
+            <div class="modal-content">
+                <p style="font-size: 20px; font-weight: bold;">🗑️ Notes Deleted!</p>
+                <p><strong>${deletedFile}</strong></p>
+                <div class="modal-buttons">
+                    <form method="get" action="/note/trash">
+                        <button type="submit">🔁 Stay Here</button>
+                    </form>
+                    <form method="get" action="/dashboard">
+                        <button type="submit">🏠 Go to Dashboard</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
     <br>
     <form action="/dashboard" method="get" style="text-align:center;">
         <input type="submit" value="🏠 Back to Dashboard" />
@@ -198,6 +280,22 @@
             const filename = row.querySelector(".filename-cell").textContent.toLowerCase();
             row.style.display = filename.includes(value) ? "" : "none";
         });
+    });
+
+    function toggleAll(checked) {
+        document.querySelectorAll(".trash-checkbox").forEach(cb => cb.checked = checked);
+    }
+
+    function toggleMaster(master) {
+        toggleAll(master.checked);
+    }
+
+    document.getElementById("trashBulkForm")?.addEventListener("submit", function(e) {
+        const anyChecked = [...document.querySelectorAll(".trash-checkbox")].some(cb => cb.checked);
+        if (!anyChecked) {
+            e.preventDefault();
+            alert("⚠️ Please select at least one note to perform this action.");
+        }
     });
 </script>
 

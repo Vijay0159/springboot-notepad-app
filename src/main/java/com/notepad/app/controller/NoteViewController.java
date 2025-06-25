@@ -461,4 +461,124 @@ public class NoteViewController {
         return "trash";
     }
 
+    @PostMapping("/note/bulk-download")
+    public void bulkDownloadSelectedNotes(@RequestParam("selectedIds") List<Long> selectedIds,
+                                          HttpSession session,
+                                          HttpServletResponse response) throws IOException {
+        if (isNotLoggedIn(session)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        List<Note> selectedNotes = noteService.getNotesByIdsAndUser(selectedIds, userId);
+
+        if (selectedNotes.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
+
+        if (selectedNotes.size() == 1) {
+            Note note = selectedNotes.get(0);
+            String filename = note.getFilename();
+            if (!filename.endsWith(".txt")) filename += ".txt";
+
+            response.setContentType("text/plain");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+            response.getOutputStream().write(note.getContent().getBytes(StandardCharsets.UTF_8));
+            response.getOutputStream().flush();
+        } else {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                 ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+                for (Note note : selectedNotes) {
+                    String filename = note.getFilename();
+                    if (!filename.endsWith(".txt")) filename += ".txt";
+                    ZipEntry entry = new ZipEntry(filename);
+                    zos.putNextEntry(entry);
+                    zos.write(note.getContent().getBytes(StandardCharsets.UTF_8));
+                    zos.closeEntry();
+                }
+
+                zos.finish();
+                response.setContentType("application/zip");
+                response.setHeader("Content-Disposition", "attachment; filename=\"selected-notes.zip\"");
+                response.getOutputStream().write(baos.toByteArray());
+                response.getOutputStream().flush();
+            }
+        }
+    }
+
+
+    @PostMapping("/note/bulk-delete")
+    public String bulkDeleteSelectedNotes(@RequestParam("selectedIds") List<Long> selectedIds,
+                                          HttpSession session,
+                                          Model model) {
+        if (isNotLoggedIn(session)) return "login";
+        Long userId = (Long) session.getAttribute("userId");
+
+        List<Note> selectedNotes = noteService.getNotesByIdsAndUser(selectedIds, userId);
+
+        if (selectedNotes.isEmpty()) {
+            model.addAttribute("error", "No valid notes selected.");
+        } else {
+            for (Note note : selectedNotes) {
+                noteService.moveNoteToTrash(note);
+            }
+            model.addAttribute("bulkDeleteSuccess", true);
+            model.addAttribute("deletedFile", selectedNotes.size() + " notes moved to Trash.");
+        }
+
+        model.addAttribute("notes", noteService.getAllNotesByUser(userId));
+        return "allNotes";
+    }
+
+
+    @PostMapping("/note/trash/bulk-restore")
+    public String handleBulkRestore(@RequestParam(value = "selectedTrashIds", required = false) List<Long> trashIds,
+                                    HttpSession session,
+                                    Model model) {
+        if (isNotLoggedIn(session)) return "login";
+
+        if (trashIds == null || trashIds.isEmpty()) {
+            model.addAttribute("error", "No notes selected for restore.");
+        } else {
+            int restoredCount = 0;
+            for (Long id : trashIds) {
+                Optional<Note> restored = noteService.restoreNoteFromTrash(id);
+                if (restored.isPresent()) restoredCount++;
+            }
+            model.addAttribute("bulkRestoreSuccess", true);
+            model.addAttribute("restoredFile", restoredCount + " notes restored successfully.");
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        model.addAttribute("trashedNotes", noteService.getTrashedNotesByUser(userId));
+        return "trash";
+    }
+
+
+    @PostMapping("/note/trash/bulk-delete")
+    public String handleBulkDelete(@RequestParam(value = "selectedTrashIds", required = false) List<Long> trashIds,
+                                   HttpSession session,
+                                   Model model) {
+        if (isNotLoggedIn(session)) return "login";
+
+        if (trashIds == null || trashIds.isEmpty()) {
+            model.addAttribute("error", "No notes selected for permanent deletion.");
+        } else {
+            int deletedCount = 0;
+            for (Long id : trashIds) {
+                if (noteService.deleteNoteFromTrashPermanently(id)) deletedCount++;
+            }
+            model.addAttribute("bulkDeleteSuccess", true);
+            model.addAttribute("deletedFile", deletedCount + " notes deleted permanently.");
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        model.addAttribute("trashedNotes", noteService.getTrashedNotesByUser(userId));
+        return "trash";
+    }
+
+
 }
